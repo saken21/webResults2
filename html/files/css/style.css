@@ -1,0 +1,30 @@
+@charset "UTF-8";
+
+@import "common/layout.css";
+
+/*-------------------------------------------------------------------------
+	Works
+/*-----------------------------------------------------------------------*/
+#works {
+}
+
+	#works table {
+		width:100%;
+	}
+	
+		#works table th {
+			padding:5px 0;
+			background:#333;
+			color:#fff;
+			font-size:16px;
+			text-align:center;
+		}
+		
+		#works table td {
+			padding:5px;
+			border:1px solid #aaa;
+		}
+		
+		#works table td.cost {
+			text-align:right;
+		}
