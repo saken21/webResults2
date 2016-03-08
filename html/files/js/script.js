@@ -1,6 +1,43 @@
 (function () { "use strict";
+var EReg = function(r,opt) {
+	opt = opt.split("u").join("");
+	this.r = new RegExp(r,opt);
+};
+EReg.prototype = {
+	match: function(s) {
+		if(this.r.global) this.r.lastIndex = 0;
+		this.r.m = this.r.exec(s);
+		this.r.s = s;
+		return this.r.m != null;
+	}
+	,replace: function(s,by) {
+		return s.replace(this.r,by);
+	}
+};
 var HxOverrides = function() { };
-HxOverrides.__name__ = true;
+HxOverrides.strDate = function(s) {
+	var _g = s.length;
+	switch(_g) {
+	case 8:
+		var k = s.split(":");
+		var d = new Date();
+		d.setTime(0);
+		d.setUTCHours(k[0]);
+		d.setUTCMinutes(k[1]);
+		d.setUTCSeconds(k[2]);
+		return d;
+	case 10:
+		var k1 = s.split("-");
+		return new Date(k1[0],k1[1] - 1,k1[2],0,0,0);
+	case 19:
+		var k2 = s.split(" ");
+		var y = k2[0].split("-");
+		var t = k2[1].split(":");
+		return new Date(y[0],y[1] - 1,y[2],t[0],t[1],t[2]);
+	default:
+		throw "Invalid date format : " + s;
+	}
+};
 HxOverrides.cca = function(s,index) {
 	var x = s.charCodeAt(index);
 	if(x != x) return undefined;
@@ -23,7 +60,6 @@ HxOverrides.iter = function(a) {
 	}};
 };
 var Lambda = function() { };
-Lambda.__name__ = true;
 Lambda.exists = function(it,f) {
 	var $it0 = $iterator(it)();
 	while( $it0.hasNext() ) {
@@ -44,7 +80,6 @@ Lambda.filter = function(it,f) {
 var List = function() {
 	this.length = 0;
 };
-List.__name__ = true;
 List.prototype = {
 	add: function(item) {
 		var x = [item];
@@ -70,31 +105,28 @@ List.prototype = {
 	}
 };
 var Main = function() { };
-Main.__name__ = true;
 Main.main = function() {
 	new js.JQuery("document").ready(function(event) {
+		view.Form.init();
 		view.Works.init();
-		utils.Data.load();
 	});
 };
 var IMap = function() { };
-IMap.__name__ = true;
 var Reflect = function() { };
-Reflect.__name__ = true;
 Reflect.getProperty = function(o,field) {
 	var tmp;
 	if(o == null) return null; else if(o.__properties__ && (tmp = o.__properties__["get_" + field])) return o[tmp](); else return o[field];
 };
 var Std = function() { };
-Std.__name__ = true;
-Std.string = function(s) {
-	return js.Boot.__string_rec(s,"");
-};
 Std.parseInt = function(x) {
 	var v = parseInt(x,10);
 	if(v == 0 && (HxOverrides.cca(x,1) == 120 || HxOverrides.cca(x,1) == 88)) v = parseInt(x);
 	if(isNaN(v)) return null;
 	return v;
+};
+var StringTools = function() { };
+StringTools.replace = function(s,sub,by) {
+	return s.split(sub).join(by);
 };
 var haxe = {};
 haxe.Http = function(url) {
@@ -103,7 +135,6 @@ haxe.Http = function(url) {
 	this.params = new List();
 	this.async = true;
 };
-haxe.Http.__name__ = true;
 haxe.Http.prototype = {
 	setParameter: function(param,value) {
 		this.params = Lambda.filter(this.params,function(p) {
@@ -190,7 +221,6 @@ haxe.ds = {};
 haxe.ds.IntMap = function() {
 	this.h = { };
 };
-haxe.ds.IntMap.__name__ = true;
 haxe.ds.IntMap.__interfaces__ = [IMap];
 haxe.ds.IntMap.prototype = {
 	set: function(key,value) {
@@ -210,7 +240,6 @@ haxe.ds.IntMap.prototype = {
 haxe.ds.StringMap = function() {
 	this.h = { };
 };
-haxe.ds.StringMap.__name__ = true;
 haxe.ds.StringMap.__interfaces__ = [IMap];
 haxe.ds.StringMap.prototype = {
 	set: function(key,value) {
@@ -218,6 +247,12 @@ haxe.ds.StringMap.prototype = {
 	}
 	,get: function(key) {
 		return this.h["$" + key];
+	}
+	,remove: function(key) {
+		key = "$" + key;
+		if(!this.h.hasOwnProperty(key)) return false;
+		delete(this.h[key]);
+		return true;
 	}
 	,keys: function() {
 		var a = [];
@@ -231,7 +266,6 @@ var jp = {};
 jp.saken = {};
 jp.saken.utils = {};
 jp.saken.utils.API = function() { };
-jp.saken.utils.API.__name__ = true;
 jp.saken.utils.API.getJSON = function(name,params,onLoaded) {
 	var http = new haxe.Http("/api/" + name + "/");
 	http.onData = function(data) {
@@ -245,77 +279,93 @@ jp.saken.utils.API.getJSON = function(name,params,onLoaded) {
 	http.request(true);
 };
 var js = {};
-js.Boot = function() { };
-js.Boot.__name__ = true;
-js.Boot.__string_rec = function(o,s) {
-	if(o == null) return "null";
-	if(s.length >= 5) return "<...>";
-	var t = typeof(o);
-	if(t == "function" && (o.__name__ || o.__ename__)) t = "object";
-	switch(t) {
-	case "object":
-		if(o instanceof Array) {
-			if(o.__enum__) {
-				if(o.length == 2) return o[0];
-				var str = o[0] + "(";
-				s += "\t";
-				var _g1 = 2;
-				var _g = o.length;
-				while(_g1 < _g) {
-					var i = _g1++;
-					if(i != 2) str += "," + js.Boot.__string_rec(o[i],s); else str += js.Boot.__string_rec(o[i],s);
-				}
-				return str + ")";
-			}
-			var l = o.length;
-			var i1;
-			var str1 = "[";
-			s += "\t";
-			var _g2 = 0;
-			while(_g2 < l) {
-				var i2 = _g2++;
-				str1 += (i2 > 0?",":"") + js.Boot.__string_rec(o[i2],s);
-			}
-			str1 += "]";
-			return str1;
-		}
-		var tostr;
-		try {
-			tostr = o.toString;
-		} catch( e ) {
-			return "???";
-		}
-		if(tostr != null && tostr != Object.toString) {
-			var s2 = o.toString();
-			if(s2 != "[object Object]") return s2;
-		}
-		var k = null;
-		var str2 = "{\n";
-		s += "\t";
-		var hasp = o.hasOwnProperty != null;
-		for( var k in o ) {
-		if(hasp && !o.hasOwnProperty(k)) {
-			continue;
-		}
-		if(k == "prototype" || k == "__class__" || k == "__super__" || k == "__interfaces__" || k == "__properties__") {
-			continue;
-		}
-		if(str2.length != 2) str2 += ", \n";
-		str2 += s + k + " : " + js.Boot.__string_rec(o[k],s);
-		}
-		s = s.substring(1);
-		str2 += "\n" + s + "}";
-		return str2;
-	case "function":
-		return "<function>";
-	case "string":
-		return o;
-	default:
-		return String(o);
+jp.saken.utils.Dom = function() { };
+jp.saken.utils.Handy = function() { };
+jp.saken.utils.Handy.alert = function(value) {
+	jp.saken.utils.Dom.window.alert(value);
+};
+jp.saken.utils.Handy.confirm = function(text,ok,cancel) {
+	if(jp.saken.utils.Dom.window.confirm(text)) ok(); else if(cancel != null) cancel();
+};
+jp.saken.utils.Handy.getPastDate = function(date,num) {
+	if(num == null) num = 30;
+	var second = HxOverrides.strDate(date).getTime() - num * 86400000;
+	var date1;
+	var d = new Date();
+	d.setTime(second);
+	date1 = d;
+	var m = jp.saken.utils.Handy.getFilledNumber(date1.getMonth() + 1,2);
+	var d1 = jp.saken.utils.Handy.getFilledNumber(date1.getDate(),2);
+	return date1.getFullYear() + "-" + m + "-" + d1;
+};
+jp.saken.utils.Handy.getFilledNumber = function(num,digits) {
+	if(digits == null) digits = 3;
+	var result = num + "";
+	var blankLength = digits - jp.saken.utils.Handy.getDigits(num);
+	var _g = 0;
+	while(_g < blankLength) {
+		var i = _g++;
+		result = "0" + result;
 	}
+	return result;
+};
+jp.saken.utils.Handy.getDigits = function(val) {
+	return (val + "").length;
+};
+jp.saken.utils.Handy.getLinkedHTML = function(text,target) {
+	if(target == null) target = "_blank";
+	if(new EReg("http","").match(text)) text = new EReg("((http|https)://[0-9a-z-/._?=&%\\[\\]~^:]+)","gi").replace(text,"<a href=\"$1\" target=\"" + target + "\">$1</a>");
+	return text;
+};
+jp.saken.utils.Handy.getBreakedHTML = function(text) {
+	if(new EReg("\n","").match(text)) text = new EReg("\r?\n","g").replace(text,"<br>");
+	return text;
+};
+jp.saken.utils.Handy.getAdjustedHTML = function(text) {
+	return jp.saken.utils.Handy.getLinkedHTML(jp.saken.utils.Handy.getBreakedHTML(text));
+};
+jp.saken.utils.Handy.getLines = function(text) {
+	return jp.saken.utils.Handy.getNumberOfCharacter(text,"\n") + 1;
+};
+jp.saken.utils.Handy.getNumberOfCharacter = function(text,character) {
+	return text.split(character).length - 1;
+};
+jp.saken.utils.Handy.getLimitText = function(text,count) {
+	if(count == null) count = 10;
+	if(text.length > count) text = HxOverrides.substr(text,0,count) + "...";
+	return text;
+};
+jp.saken.utils.Handy.getReplacedSC = function(text) {
+	text = StringTools.replace(text,"'","&#039;");
+	text = StringTools.replace(text,"\\","&#47;");
+	return text;
+};
+jp.saken.utils.Handy.getSlicedArray = function(array,num) {
+	if(num == null) num = 1000;
+	var results = [];
+	var _g1 = 0;
+	var _g = Math.ceil(array.length / num);
+	while(_g1 < _g) {
+		var i = _g1++;
+		var j = i * num;
+		results.push(array.slice(j,j + num));
+	}
+	return results;
+};
+jp.saken.utils.Handy.shuffleArray = function(array) {
+	var copy = array.slice();
+	var results = [];
+	var length = copy.length;
+	var _g = 0;
+	while(_g < length) {
+		var i = _g++;
+		var index = Math.floor(Math.random() * length);
+		results.push(copy[index]);
+		copy.splice(index,1);
+	}
+	return results;
 };
 js.Browser = function() { };
-js.Browser.__name__ = true;
 js.Browser.createXMLHttpRequest = function() {
 	if(typeof XMLHttpRequest != "undefined") return new XMLHttpRequest();
 	if(typeof ActiveXObject != "undefined") return new ActiveXObject("Microsoft.XMLHTTP");
@@ -323,16 +373,29 @@ js.Browser.createXMLHttpRequest = function() {
 };
 var utils = {};
 utils.Data = function() { };
-utils.Data.__name__ = true;
-utils.Data.load = function(params) {
-	if(params == null) {
-		var _g = new haxe.ds.StringMap();
-		_g.set("date",Std.string(new Date().getFullYear()));
-		params = _g;
+utils.Data.load = function(keyword,from,to) {
+	var params;
+	var _g = new haxe.ds.StringMap();
+	_g.set("from",from);
+	_g.set("to",to);
+	params = _g;
+	if(keyword.length > 0) {
+		params.set("client",keyword);
+		keyword;
 	}
 	jp.saken.utils.API.getJSON("webResults2",params,function(data) {
-		view.Works.setHTML(utils.Data.getSplitedData(data));
+		if(data.length == 0) {
+			params.remove("client");
+			params.set("keyword",keyword);
+			keyword;
+			jp.saken.utils.API.getJSON("webResults2",params,utils.Data.onLoaded);
+			return;
+		}
+		utils.Data.onLoaded(data);
 	});
+};
+utils.Data.onLoaded = function(data) {
+	if(data.length > 0) view.Works.setHTML(utils.Data.getSplitedData(data)); else view.Works.setEmptyHTML();
 };
 utils.Data.getSplitedData = function(data) {
 	var map = new haxe.ds.IntMap();
@@ -351,43 +414,92 @@ utils.Data.getSplitedData = function(data) {
 	return map;
 };
 var view = {};
-view.Works = function() { };
-view.Works.__name__ = true;
-view.Works.init = function() {
-	view.Works._jParent = new js.JQuery("#works");
+view.Form = function() { };
+view.Form.init = function() {
+	view.Form._jParent = new js.JQuery("#form");
+	view.Form._jKeyword = view.Form._jParent.find(".keyword").find("input");
+	view.Form._jFrom = view.Form._jParent.find(".from").find("input");
+	view.Form._jTo = view.Form._jParent.find(".to").find("input");
+	view.Form._jSubmit = view.Form._jParent.find(".submit").find("button");
+	view.Form.setYear(new Date().getFullYear());
+	view.Form._jSubmit.on("click",view.Form.submit).trigger("click");
 };
-view.Works.setHTML = function(map) {
+view.Form.setYear = function(year) {
+	view.Form._jFrom.prop("value",view.Form.getFormattedDate(year,1));
+	view.Form._jTo.prop("value",view.Form.getFormattedDate(year,12));
+};
+view.Form.submit = function(event) {
+	var keyword = view.Form._jKeyword.prop("value");
+	var from = view.Form.getDateNumber(view.Form._jFrom.prop("value"));
+	var to = view.Form.getDateNumber(view.Form._jTo.prop("value"));
+	utils.Data.load(keyword,from,to);
+	return false;
+};
+view.Form.getDateNumber = function(date) {
+	return StringTools.replace(date,"-","");
+};
+view.Form.getFormattedDate = function(year,month) {
+	return year + "-" + jp.saken.utils.Handy.getFilledNumber(month,2);
+};
+view.Html = function() { };
+view.Html.get = function(map) {
+	view.Html._totalCost = 0;
 	var html = "<table>";
 	var $it0 = map.keys();
 	while( $it0.hasNext() ) {
 		var key = $it0.next();
-		html += "\n\t\t\t\t<tr class=\"date\">\n\t\t\t\t\t<th colspan=\"6\">" + view.Works.getFormattedDate(key) + "</th>\n\t\t\t\t</tr>";
-		var array = map.get(key);
-		var _g1 = 0;
-		var _g = array.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			html += view.Works.getWorkHTML(array[i]);
-		}
-		html += "\n\t\t\t\t<tr class=\"month-total\">\n\t\t\t\t\t<td colspan=\"6\">月合計：</td>\n\t\t\t\t</tr>";
+		html += view.Html.getMonthlyWorks(key,map.get(key));
 	}
-	view.Works._jParent.html(html + "</table>");
+	return html + "</table>";
 };
-view.Works.getWorkHTML = function(info) {
+view.Html.getMonthlyWorks = function(key,array) {
+	var monthlyCost = 0;
+	var html = "\n\t\t<tr class=\"date\">\n\t\t\t<th colspan=\"" + 6 + "\">" + view.Html.getFormattedDate(key) + "</th>\n\t\t</tr>";
+	var _g1 = 0;
+	var _g = array.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		var info = array[i];
+		html += view.Html.getWork(info);
+		monthlyCost += info.cost;
+	}
+	view.Html._totalCost += monthlyCost;
+	html += "\n\t\t<tr class=\"monthly-cost\">\n\t\t\t<td class=\"cost\" colspan=\"" + 6 + "\">月計：" + view.Html.getFormattedPrice(monthlyCost) + "</td>\n\t\t</tr>\n\t\t<tr class=\"total-cost\">\n\t\t\t<td class=\"cost\" colspan=\"" + 6 + "\">累計：" + view.Html.getFormattedPrice(view.Html._totalCost) + "</td>\n\t\t</tr>\n\t\t<tr class=\"blank\"><td colspan=\"" + 6 + "\"></td></tr>";
+	return html;
+};
+view.Html.getWork = function(info) {
 	var keys = ["number","client","name","members","sales","cost"];
 	var html = "<tr class=\"work\">";
 	var _g1 = 0;
 	var _g = keys.length;
 	while(_g1 < _g) {
 		var i = _g1++;
-		var key = keys[i];
-		var content = "";
-		if(key == "members") content = view.Works.getMembers(info.ratio_list.split(",")); else content = Reflect.getProperty(info,key);
-		html += "<td class=\"" + key + "\">" + content + "</td>";
+		html += view.Html.getTD(info,keys[i]);
 	}
 	return html + "</tr>";
 };
-view.Works.getMembers = function(ratios) {
+view.Html.getTD = function(info,key) {
+	var content = "";
+	if(key == "members") content = view.Html.getMembers(info.ratio_list.split(",")); else {
+		var value = Reflect.getProperty(info,key);
+		switch(key) {
+		case "cost":
+			content = view.Html.getFormattedPrice(Std.parseInt(value));
+			break;
+		case "name":
+			var url = info.url;
+			var name = value;
+			var prop = "";
+			if(url.length > 0) prop = " href=\"" + url + "\" class=\"link\" target=\"_blank\"";
+			content = "<a" + prop + ">" + name + "</a>";
+			break;
+		default:
+			if(value.length > 0) content = value; else content = "-";
+		}
+	}
+	return "<td class=\"" + key + "\">" + content + "</td>";
+};
+view.Html.getMembers = function(ratios) {
 	ratios.sort(function(a,b) {
 		return Std.parseInt(b.split("=")[1]) - Std.parseInt(a.split("=")[1]);
 	});
@@ -400,20 +512,56 @@ view.Works.getMembers = function(ratios) {
 	}
 	return members.join(",");
 };
-view.Works.getFormattedDate = function(date) {
+view.Html.getFormattedDate = function(date) {
 	var string;
 	if(date == null) string = "null"; else string = "" + date;
 	return HxOverrides.substr(string,0,4) + "." + HxOverrides.substr(string,4,2);
 };
+view.Html.getFormattedPrice = function(price) {
+	var string;
+	if(price == null) string = "null"; else string = "" + price;
+	var length = string.length;
+	var result = "";
+	var _g = 0;
+	while(_g < length) {
+		var i = _g++;
+		if(i > 0 && (length - i) % 3 == 0) result += ",";
+		result += string.charAt(i);
+	}
+	return "￥" + result + "-";
+};
+view.Works = function() { };
+view.Works.init = function() {
+	view.Works._jParent = new js.JQuery("#works");
+};
+view.Works.setHTML = function(map) {
+	view.Works._jParent.html(view.Html.get(map));
+};
+view.Works.setEmptyHTML = function() {
+	view.Works._jParent.html("<tr><th>検索結果：0件<th></tr>");
+};
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; }
 var $_, $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; }
-String.__name__ = true;
-Array.__name__ = true;
-Date.__name__ = ["Date"];
+Math.NaN = Number.NaN;
+Math.NEGATIVE_INFINITY = Number.NEGATIVE_INFINITY;
+Math.POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
+Math.isFinite = function(i) {
+	return isFinite(i);
+};
+Math.isNaN = function(i1) {
+	return isNaN(i1);
+};
 var q = window.jQuery;
 js.JQuery = q;
 jp.saken.utils.API.PATH = "/api/";
+jp.saken.utils.Dom.document = window.document;
+jp.saken.utils.Dom.window = window;
+jp.saken.utils.Dom.jWindow = new js.JQuery(jp.saken.utils.Dom.window);
+jp.saken.utils.Dom.body = jp.saken.utils.Dom.document.body;
+jp.saken.utils.Dom.jBody = new js.JQuery(jp.saken.utils.Dom.body);
+jp.saken.utils.Dom.userAgent = jp.saken.utils.Dom.window.navigator.userAgent;
 utils.Data.API_NAME = "webResults2";
+view.Html.COLUMN_LENGTH = 6;
 Main.main();
 })();

@@ -10,21 +10,65 @@
 
 	#works table {
 		width:100%;
+		font-size:12px;
+		letter-spacing:.5px;
 	}
 	
-		#works table th {
-			padding:5px 0;
+		#works table .date th {
+			padding:15px 0;
 			background:#333;
 			color:#fff;
 			font-size:16px;
+			font-weight:normal;
 			text-align:center;
 		}
 		
 		#works table td {
-			padding:5px;
+			overflow:hidden;
+			padding:10px;
 			border:1px solid #aaa;
+			background:#fff;
+			word-break:keep-all;
 		}
+		
+		#works table tr:nth-child(odd) td {
+			background-color:#f8f8f8;
+		}
+		
+		#works table td.name {
+			padding:0;
+		}
+		
+			#works table td.name a {
+				display:block;
+				padding:10px;
+			}
+			
+			#works table td.name a.link {
+				color:#329fba;
+			}
+			
+			#works table td.name a.link:hover {
+				text-decoration:underline;
+			}
 		
 		#works table td.cost {
 			text-align:right;
+		}
+		
+		#works table .monthly-cost td,
+		#works table .total-cost td {
+			background-color:#fff !important;
+			font-size:14px;
+			font-weight:bold;
+		}
+		
+		#works table .monthly-cost td {
+			border-top-width:2px;
+		}
+		
+		#works table .blank td {
+			height:10px;
+			border:none;
+			background-color:#fff !important;
 		}

@@ -13,20 +13,45 @@ class Data {
 	/* =======================================================================
 	Public - Load
 	========================================================================== */
-	public static function load(params:ParamMap = null):Void {
+	public static function load(keyword:String,from:String,to:String):Void {
 		
-		if (params == null) {
-			params = ['date'=>Std.string(Date.now().getFullYear())];
+		var params:ParamMap = ['from'=>from,'to'=>to];
+		
+		if (keyword.length > 0) {
+			params['client'] = keyword;
 		}
 		
 		API.getJSON(API_NAME,params,function(data:DataArray):Void {
-			Works.setHTML(getSplitedData(data));
+			
+			if (data.length == 0) {
+				
+				params.remove('client');
+				params['keyword'] = keyword;
+				
+				API.getJSON(API_NAME,params,onLoaded);
+				
+				return;
+				
+			}
+			
+			onLoaded(data);
+		
 		});
 		
 	}
 	
 	/* =======================================================================
-	Public - Load
+	On Loaded
+	========================================================================== */
+	private static function onLoaded(data:DataArray):Void {
+		
+		if (data.length > 0) Works.setHTML(getSplitedData(data));
+		else Works.setEmptyHTML();
+		
+	}
+	
+	/* =======================================================================
+	Get Splited Data
 	========================================================================== */
 	private static function getSplitedData(data:DataArray):Map<Int,DataArray> {
 		

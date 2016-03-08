@@ -5,7 +5,7 @@
 *
 * Author : KENTA SAKATA
 * Since  : 2016/03/05
-* Update : 2016/03/07
+* Update : 2016/03/08
 *
 * Licensed under the MIT License
 * Copyright (c) Kenta Sakata
@@ -17,6 +17,7 @@
 package;
 
 import js.JQuery;
+import view.Form;
 import view.Works;
 import utils.Data;
 
@@ -26,8 +27,8 @@ class Main {
 		
 		new JQuery('document').ready(function(event:JqEvent):Void {
 			
+			Form.init();
 			Works.init();
-			Data.load();
 			
 		});
 		

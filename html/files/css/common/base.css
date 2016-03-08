@@ -68,7 +68,7 @@ address {
 	Setup
 /*-----------------------------------------------------------------------*/
 body {
-	color:#231815;
+	color:#333;
 	font-size:14px;
 	font-family:"Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
 }
@@ -89,18 +89,8 @@ em {
 /*-------------------------------------------------------------------------
 	Anchor
 /*-----------------------------------------------------------------------*/
-a:link {
-	color:#298321;
-	text-decoration:underline;
-}
-
-a:visited {
-	color:#298321;
-	text-decoration:none;
-}
-
-a:hover {
-	color:#298321;
+a {
+	color:#333;
 	text-decoration:none;
 }
 
