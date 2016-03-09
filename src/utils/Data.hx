@@ -9,6 +9,7 @@ typedef DataArray = Array<Dynamic>;
 class Data {
 	
 	private static inline var API_NAME:String = 'webResults2';
+	private static inline var MY_IP   :String = '192.168.0.39';
 	
 	/* =======================================================================
 	Public - Load
@@ -48,6 +49,8 @@ class Data {
 		if (data.length > 0) Works.setHTML(getSplitedData(data));
 		else Works.setEmptyHTML();
 		
+		traceMembersCost(data);
+		
 	}
 	
 	/* =======================================================================
@@ -71,6 +74,44 @@ class Data {
 		}
 		
 		return map;
+		
+	}
+	
+	/* =======================================================================
+	Trace Members Cost
+	========================================================================== */
+	private static function traceMembersCost(data:DataArray):Void {
+		
+		API.getIP(function(ip:String):Void {
+			
+			if (ip != MY_IP) return;
+			
+			var map:Map<String,Int> = new Map();
+			
+			for (i in 0...data.length) {
+				
+				var ratios:Array<String> = data[i].ratio_list.split(',');
+				
+				for (j in 0...ratios.length) {
+					
+					var splits:Array<String> = ratios[j].split('=');
+					
+					var member:String = splits[0];
+					var cost  :Int    = Std.parseInt(splits[1]);
+					var total :Int = map[member];
+					
+					if (total == null) total = 0;
+					total += cost;
+					
+					map[member] = total;
+					
+				}
+				
+			}
+			
+			trace(map);
+			
+		});
 		
 	}
 

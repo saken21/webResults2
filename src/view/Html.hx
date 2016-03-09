@@ -1,6 +1,7 @@
 package view;
 
 import js.JQuery;
+import jp.saken.utils.Handy;
 import utils.Data;
 
 class Html {
@@ -50,10 +51,10 @@ class Html {
 		
 		html += '
 		<tr class="monthly-cost">
-			<td class="cost" colspan="' + COLUMN_LENGTH + '">月計：' + getFormattedPrice(monthlyCost) + '</td>
+			<td class="cost" colspan="' + COLUMN_LENGTH + '">月計：' + Handy.getFormattedPrice(monthlyCost) + '</td>
 		</tr>
 		<tr class="total-cost">
-			<td class="cost" colspan="' + COLUMN_LENGTH + '">累計：' + getFormattedPrice(_totalCost) + '</td>
+			<td class="cost" colspan="' + COLUMN_LENGTH + '">累計：' + Handy.getFormattedPrice(_totalCost) + '</td>
 		</tr>
 		<tr class="blank"><td colspan="' + COLUMN_LENGTH + '"></td></tr>';
 		
@@ -91,10 +92,11 @@ class Html {
 		} else {
 			
 			var value:String = Reflect.getProperty(info,key);
+			if (value == null) value = '';
 			
 			switch (key) {
 				
-				case 'cost' : content = getFormattedPrice(Std.parseInt(value));
+				case 'cost' : content = Handy.getFormattedPrice(Std.parseInt(value));
 
 				case 'name' : {
 
@@ -146,26 +148,6 @@ class Html {
 		
 		var string:String = Std.string(date);
 		return string.substr(0,4) + '.' + string.substr(4,2);
-		
-	}
-	
-	/* =======================================================================
-	Get Formatted Price
-	========================================================================== */
-	private static function getFormattedPrice(price:Int):String {
-		
-		var string:String = Std.string(price);
-		var length:Int    = string.length;
-		var result:String = '';
-		
-		for (i in 0...length) {
-			
-			if (i > 0 && (length - i) % 3 == 0) result += ',';
-			result += string.charAt(i);
-			
-		}
-		
-		return '￥' + result + '-';
 		
 	}
 

@@ -5,7 +5,7 @@
 *
 * Author : KENTA SAKATA
 * Since  : 2016/03/05
-* Update : 2016/03/08
+* Update : 2016/03/09
 *
 * Licensed under the MIT License
 * Copyright (c) Kenta Sakata

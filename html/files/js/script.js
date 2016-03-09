@@ -3,6 +3,7 @@ var EReg = function(r,opt) {
 	opt = opt.split("u").join("");
 	this.r = new RegExp(r,opt);
 };
+EReg.__name__ = true;
 EReg.prototype = {
 	match: function(s) {
 		if(this.r.global) this.r.lastIndex = 0;
@@ -15,6 +16,7 @@ EReg.prototype = {
 	}
 };
 var HxOverrides = function() { };
+HxOverrides.__name__ = true;
 HxOverrides.strDate = function(s) {
 	var _g = s.length;
 	switch(_g) {
@@ -60,6 +62,7 @@ HxOverrides.iter = function(a) {
 	}};
 };
 var Lambda = function() { };
+Lambda.__name__ = true;
 Lambda.exists = function(it,f) {
 	var $it0 = $iterator(it)();
 	while( $it0.hasNext() ) {
@@ -80,6 +83,7 @@ Lambda.filter = function(it,f) {
 var List = function() {
 	this.length = 0;
 };
+List.__name__ = true;
 List.prototype = {
 	add: function(item) {
 		var x = [item];
@@ -105,6 +109,7 @@ List.prototype = {
 	}
 };
 var Main = function() { };
+Main.__name__ = true;
 Main.main = function() {
 	new js.JQuery("document").ready(function(event) {
 		view.Form.init();
@@ -112,19 +117,36 @@ Main.main = function() {
 	});
 };
 var IMap = function() { };
+IMap.__name__ = true;
+Math.__name__ = true;
 var Reflect = function() { };
+Reflect.__name__ = true;
 Reflect.getProperty = function(o,field) {
 	var tmp;
 	if(o == null) return null; else if(o.__properties__ && (tmp = o.__properties__["get_" + field])) return o[tmp](); else return o[field];
 };
 var Std = function() { };
+Std.__name__ = true;
+Std.string = function(s) {
+	return js.Boot.__string_rec(s,"");
+};
 Std.parseInt = function(x) {
 	var v = parseInt(x,10);
 	if(v == 0 && (HxOverrides.cca(x,1) == 120 || HxOverrides.cca(x,1) == 88)) v = parseInt(x);
 	if(isNaN(v)) return null;
 	return v;
 };
+var StringBuf = function() {
+	this.b = "";
+};
+StringBuf.__name__ = true;
+StringBuf.prototype = {
+	add: function(x) {
+		this.b += Std.string(x);
+	}
+};
 var StringTools = function() { };
+StringTools.__name__ = true;
 StringTools.replace = function(s,sub,by) {
 	return s.split(sub).join(by);
 };
@@ -135,6 +157,7 @@ haxe.Http = function(url) {
 	this.params = new List();
 	this.async = true;
 };
+haxe.Http.__name__ = true;
 haxe.Http.prototype = {
 	setParameter: function(param,value) {
 		this.params = Lambda.filter(this.params,function(p) {
@@ -221,6 +244,7 @@ haxe.ds = {};
 haxe.ds.IntMap = function() {
 	this.h = { };
 };
+haxe.ds.IntMap.__name__ = true;
 haxe.ds.IntMap.__interfaces__ = [IMap];
 haxe.ds.IntMap.prototype = {
 	set: function(key,value) {
@@ -240,6 +264,7 @@ haxe.ds.IntMap.prototype = {
 haxe.ds.StringMap = function() {
 	this.h = { };
 };
+haxe.ds.StringMap.__name__ = true;
 haxe.ds.StringMap.__interfaces__ = [IMap];
 haxe.ds.StringMap.prototype = {
 	set: function(key,value) {
@@ -261,11 +286,26 @@ haxe.ds.StringMap.prototype = {
 		}
 		return HxOverrides.iter(a);
 	}
+	,toString: function() {
+		var s = new StringBuf();
+		s.b += "{";
+		var it = this.keys();
+		while( it.hasNext() ) {
+			var i = it.next();
+			if(i == null) s.b += "null"; else s.b += "" + i;
+			s.b += " => ";
+			s.add(Std.string(this.get(i)));
+			if(it.hasNext()) s.b += ", ";
+		}
+		s.b += "}";
+		return s.b;
+	}
 };
 var jp = {};
 jp.saken = {};
 jp.saken.utils = {};
 jp.saken.utils.API = function() { };
+jp.saken.utils.API.__name__ = true;
 jp.saken.utils.API.getJSON = function(name,params,onLoaded) {
 	var http = new haxe.Http("/api/" + name + "/");
 	http.onData = function(data) {
@@ -278,9 +318,19 @@ jp.saken.utils.API.getJSON = function(name,params,onLoaded) {
 	}
 	http.request(true);
 };
+jp.saken.utils.API.getIP = function(onLoaded) {
+	var http = new haxe.Http("/api/" + "handy/");
+	http.onData = function(data) {
+		onLoaded(data);
+	};
+	http.setParameter("key","ip");
+	http.request(true);
+};
 var js = {};
 jp.saken.utils.Dom = function() { };
+jp.saken.utils.Dom.__name__ = true;
 jp.saken.utils.Handy = function() { };
+jp.saken.utils.Handy.__name__ = true;
 jp.saken.utils.Handy.alert = function(value) {
 	jp.saken.utils.Dom.window.alert(value);
 };
@@ -311,6 +361,19 @@ jp.saken.utils.Handy.getFilledNumber = function(num,digits) {
 };
 jp.saken.utils.Handy.getDigits = function(val) {
 	return (val + "").length;
+};
+jp.saken.utils.Handy.getFormattedPrice = function(price) {
+	var string;
+	if(price == null) string = "null"; else string = "" + price;
+	var length = string.length;
+	var result = "";
+	var _g = 0;
+	while(_g < length) {
+		var i = _g++;
+		if(i > 0 && (length - i) % 3 == 0) result += ",";
+		result += string.charAt(i);
+	}
+	return "￥" + result + "-";
 };
 jp.saken.utils.Handy.getLinkedHTML = function(text,target) {
 	if(target == null) target = "_blank";
@@ -365,7 +428,77 @@ jp.saken.utils.Handy.shuffleArray = function(array) {
 	}
 	return results;
 };
+js.Boot = function() { };
+js.Boot.__name__ = true;
+js.Boot.__string_rec = function(o,s) {
+	if(o == null) return "null";
+	if(s.length >= 5) return "<...>";
+	var t = typeof(o);
+	if(t == "function" && (o.__name__ || o.__ename__)) t = "object";
+	switch(t) {
+	case "object":
+		if(o instanceof Array) {
+			if(o.__enum__) {
+				if(o.length == 2) return o[0];
+				var str = o[0] + "(";
+				s += "\t";
+				var _g1 = 2;
+				var _g = o.length;
+				while(_g1 < _g) {
+					var i = _g1++;
+					if(i != 2) str += "," + js.Boot.__string_rec(o[i],s); else str += js.Boot.__string_rec(o[i],s);
+				}
+				return str + ")";
+			}
+			var l = o.length;
+			var i1;
+			var str1 = "[";
+			s += "\t";
+			var _g2 = 0;
+			while(_g2 < l) {
+				var i2 = _g2++;
+				str1 += (i2 > 0?",":"") + js.Boot.__string_rec(o[i2],s);
+			}
+			str1 += "]";
+			return str1;
+		}
+		var tostr;
+		try {
+			tostr = o.toString;
+		} catch( e ) {
+			return "???";
+		}
+		if(tostr != null && tostr != Object.toString) {
+			var s2 = o.toString();
+			if(s2 != "[object Object]") return s2;
+		}
+		var k = null;
+		var str2 = "{\n";
+		s += "\t";
+		var hasp = o.hasOwnProperty != null;
+		for( var k in o ) {
+		if(hasp && !o.hasOwnProperty(k)) {
+			continue;
+		}
+		if(k == "prototype" || k == "__class__" || k == "__super__" || k == "__interfaces__" || k == "__properties__") {
+			continue;
+		}
+		if(str2.length != 2) str2 += ", \n";
+		str2 += s + k + " : " + js.Boot.__string_rec(o[k],s);
+		}
+		s = s.substring(1);
+		str2 += "\n" + s + "}";
+		return str2;
+	case "function":
+		return "<function>";
+	case "string":
+		return o;
+	default:
+		return String(o);
+	}
+};
 js.Browser = function() { };
+js.Browser.__name__ = true;
 js.Browser.createXMLHttpRequest = function() {
 	if(typeof XMLHttpRequest != "undefined") return new XMLHttpRequest();
 	if(typeof ActiveXObject != "undefined") return new ActiveXObject("Microsoft.XMLHTTP");
@@ -373,6 +506,7 @@ js.Browser.createXMLHttpRequest = function() {
 };
 var utils = {};
 utils.Data = function() { };
+utils.Data.__name__ = true;
 utils.Data.load = function(keyword,from,to) {
 	var params;
 	var _g = new haxe.ds.StringMap();
@@ -396,6 +530,7 @@ utils.Data.load = function(keyword,from,to) {
 };
 utils.Data.onLoaded = function(data) {
 	if(data.length > 0) view.Works.setHTML(utils.Data.getSplitedData(data)); else view.Works.setEmptyHTML();
+	utils.Data.traceMembersCost(data);
 };
 utils.Data.getSplitedData = function(data) {
 	var map = new haxe.ds.IntMap();
@@ -413,8 +548,35 @@ utils.Data.getSplitedData = function(data) {
 	}
 	return map;
 };
+utils.Data.traceMembersCost = function(data) {
+	jp.saken.utils.API.getIP(function(ip) {
+		if(ip != "192.168.0.39") return;
+		var map = new haxe.ds.StringMap();
+		var _g1 = 0;
+		var _g = data.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var ratios = data[i].ratio_list.split(",");
+			var _g3 = 0;
+			var _g2 = ratios.length;
+			while(_g3 < _g2) {
+				var j = _g3++;
+				var splits = ratios[j].split("=");
+				var member = splits[0];
+				var cost = Std.parseInt(splits[1]);
+				var total = map.get(member);
+				if(total == null) total = 0;
+				total += cost;
+				map.set(member,total);
+				total;
+			}
+		}
+		console.log(map.toString());
+	});
+};
 var view = {};
 view.Form = function() { };
+view.Form.__name__ = true;
 view.Form.init = function() {
 	view.Form._jParent = new js.JQuery("#form");
 	view.Form._jKeyword = view.Form._jParent.find(".keyword").find("input");
@@ -442,6 +604,7 @@ view.Form.getFormattedDate = function(year,month) {
 	return year + "-" + jp.saken.utils.Handy.getFilledNumber(month,2);
 };
 view.Html = function() { };
+view.Html.__name__ = true;
 view.Html.get = function(map) {
 	view.Html._totalCost = 0;
 	var html = "<table>";
@@ -464,7 +627,7 @@ view.Html.getMonthlyWorks = function(key,array) {
 		monthlyCost += info.cost;
 	}
 	view.Html._totalCost += monthlyCost;
-	html += "\n\t\t<tr class=\"monthly-cost\">\n\t\t\t<td class=\"cost\" colspan=\"" + 6 + "\">月計：" + view.Html.getFormattedPrice(monthlyCost) + "</td>\n\t\t</tr>\n\t\t<tr class=\"total-cost\">\n\t\t\t<td class=\"cost\" colspan=\"" + 6 + "\">累計：" + view.Html.getFormattedPrice(view.Html._totalCost) + "</td>\n\t\t</tr>\n\t\t<tr class=\"blank\"><td colspan=\"" + 6 + "\"></td></tr>";
+	html += "\n\t\t<tr class=\"monthly-cost\">\n\t\t\t<td class=\"cost\" colspan=\"" + 6 + "\">月計：" + jp.saken.utils.Handy.getFormattedPrice(monthlyCost) + "</td>\n\t\t</tr>\n\t\t<tr class=\"total-cost\">\n\t\t\t<td class=\"cost\" colspan=\"" + 6 + "\">累計：" + jp.saken.utils.Handy.getFormattedPrice(view.Html._totalCost) + "</td>\n\t\t</tr>\n\t\t<tr class=\"blank\"><td colspan=\"" + 6 + "\"></td></tr>";
 	return html;
 };
 view.Html.getWork = function(info) {
@@ -482,9 +645,10 @@ view.Html.getTD = function(info,key) {
 	var content = "";
 	if(key == "members") content = view.Html.getMembers(info.ratio_list.split(",")); else {
 		var value = Reflect.getProperty(info,key);
+		if(value == null) value = "";
 		switch(key) {
 		case "cost":
-			content = view.Html.getFormattedPrice(Std.parseInt(value));
+			content = jp.saken.utils.Handy.getFormattedPrice(Std.parseInt(value));
 			break;
 		case "name":
 			var url = info.url;
@@ -517,20 +681,8 @@ view.Html.getFormattedDate = function(date) {
 	if(date == null) string = "null"; else string = "" + date;
 	return HxOverrides.substr(string,0,4) + "." + HxOverrides.substr(string,4,2);
 };
-view.Html.getFormattedPrice = function(price) {
-	var string;
-	if(price == null) string = "null"; else string = "" + price;
-	var length = string.length;
-	var result = "";
-	var _g = 0;
-	while(_g < length) {
-		var i = _g++;
-		if(i > 0 && (length - i) % 3 == 0) result += ",";
-		result += string.charAt(i);
-	}
-	return "￥" + result + "-";
-};
 view.Works = function() { };
+view.Works.__name__ = true;
 view.Works.init = function() {
 	view.Works._jParent = new js.JQuery("#works");
 };
@@ -552,6 +704,9 @@ Math.isFinite = function(i) {
 Math.isNaN = function(i1) {
 	return isNaN(i1);
 };
+String.__name__ = true;
+Array.__name__ = true;
+Date.__name__ = ["Date"];
 var q = window.jQuery;
 js.JQuery = q;
 jp.saken.utils.API.PATH = "/api/";
@@ -562,6 +717,7 @@ jp.saken.utils.Dom.body = jp.saken.utils.Dom.document.body;
 jp.saken.utils.Dom.jBody = new js.JQuery(jp.saken.utils.Dom.body);
 jp.saken.utils.Dom.userAgent = jp.saken.utils.Dom.window.navigator.userAgent;
 utils.Data.API_NAME = "webResults2";
+utils.Data.MY_IP = "192.168.0.39";
 view.Html.COLUMN_LENGTH = 6;
 Main.main();
 })();
