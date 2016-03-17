@@ -112,8 +112,10 @@ var Main = function() { };
 Main.__name__ = true;
 Main.main = function() {
 	new js.JQuery("document").ready(function(event) {
-		view.Form.init();
+		view.Searchbox.init();
 		view.Works.init();
+		view.Editbox.init();
+		ui.Keyboard.init();
 	});
 };
 var IMap = function() { };
@@ -124,6 +126,21 @@ Reflect.__name__ = true;
 Reflect.getProperty = function(o,field) {
 	var tmp;
 	if(o == null) return null; else if(o.__properties__ && (tmp = o.__properties__["get_" + field])) return o[tmp](); else return o[field];
+};
+Reflect.fields = function(o) {
+	var a = [];
+	if(o != null) {
+		var hasOwnProperty = Object.prototype.hasOwnProperty;
+		for( var f in o ) {
+		if(f != "__id__" && f != "hx__closures__" && hasOwnProperty.call(o,f)) a.push(f);
+		}
+	}
+	return a;
+};
+Reflect.deleteField = function(o,field) {
+	if(!Object.prototype.hasOwnProperty.call(o,field)) return false;
+	delete(o[field]);
+	return true;
 };
 var Std = function() { };
 Std.__name__ = true;
@@ -307,9 +324,14 @@ jp.saken.utils = {};
 jp.saken.utils.API = function() { };
 jp.saken.utils.API.__name__ = true;
 jp.saken.utils.API.getJSON = function(name,params,onLoaded) {
+	jp.saken.utils.API.getString(name,params,function(data) {
+		onLoaded(JSON.parse(data));
+	});
+};
+jp.saken.utils.API.getString = function(name,params,onLoaded) {
 	var http = new haxe.Http("/api/" + name + "/");
 	http.onData = function(data) {
-		onLoaded(JSON.parse(data));
+		onLoaded(data);
 	};
 	var $it0 = params.keys();
 	while( $it0.hasNext() ) {
@@ -319,12 +341,13 @@ jp.saken.utils.API.getJSON = function(name,params,onLoaded) {
 	http.request(true);
 };
 jp.saken.utils.API.getIP = function(onLoaded) {
-	var http = new haxe.Http("/api/" + "handy/");
-	http.onData = function(data) {
-		onLoaded(data);
-	};
-	http.setParameter("key","ip");
-	http.request(true);
+	jp.saken.utils.API.getString("handy",(function($this) {
+		var $r;
+		var _g = new haxe.ds.StringMap();
+		_g.set("key","ip");
+		$r = _g;
+		return $r;
+	}(this)),onLoaded);
 };
 var js = {};
 jp.saken.utils.Dom = function() { };
@@ -428,6 +451,24 @@ jp.saken.utils.Handy.shuffleArray = function(array) {
 	}
 	return results;
 };
+jp.saken.utils.Handy.getMap = function(array) {
+	var map = new haxe.ds.IntMap();
+	var _g1 = 0;
+	var _g = array.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		var info = array[i];
+		var id = info.id;
+		Reflect.deleteField(info,"id");
+		var fields = Reflect.fields(info);
+		var value;
+		if(fields.length > 1) value = info; else value = Reflect.getProperty(info,fields[0]);
+		var v = value;
+		map.set(id,v);
+		v;
+	}
+	return map;
+};
 js.Boot = function() { };
 js.Boot.__name__ = true;
 js.Boot.__string_rec = function(o,s) {
@@ -504,6 +545,18 @@ js.Browser.createXMLHttpRequest = function() {
 	if(typeof ActiveXObject != "undefined") return new ActiveXObject("Microsoft.XMLHTTP");
 	throw "Unable to create XMLHttpRequest object.";
 };
+var ui = {};
+ui.Keyboard = function() { };
+ui.Keyboard.__name__ = true;
+ui.Keyboard.init = function() {
+	jp.saken.utils.Dom.jWindow.on("keydown",ui.Keyboard.onKeydown);
+};
+ui.Keyboard.onKeydown = function(event) {
+	var keyCode = event.keyCode;
+	if(event.ctrlKey) {
+		if(keyCode == 69) view.Editbox.toggle();
+	}
+};
 var utils = {};
 utils.Data = function() { };
 utils.Data.__name__ = true;
@@ -575,33 +628,68 @@ utils.Data.traceMembersCost = function(data) {
 	});
 };
 var view = {};
-view.Form = function() { };
-view.Form.__name__ = true;
-view.Form.init = function() {
-	view.Form._jParent = new js.JQuery("#form");
-	view.Form._jKeyword = view.Form._jParent.find(".keyword").find("input");
-	view.Form._jFrom = view.Form._jParent.find(".from").find("input");
-	view.Form._jTo = view.Form._jParent.find(".to").find("input");
-	view.Form._jSubmit = view.Form._jParent.find(".submit").find("button");
-	view.Form.setYear(new Date().getFullYear());
-	view.Form._jSubmit.on("click",view.Form.submit).trigger("click");
+view.Editbox = function() { };
+view.Editbox.__name__ = true;
+view.Editbox.init = function() {
+	view.Editbox._jParent = new js.JQuery("#editbox");
+	view.Editbox._jMainArea = new js.JQuery("#all").add(new js.JQuery("#header"));
+	view.Editbox._width = view.Editbox._jParent.width();
+	view.Editbox._isOpened = false;
+	view.Editbox.setSales();
+	view.Editbox.setHasAuth();
 };
-view.Form.setYear = function(year) {
-	view.Form._jFrom.prop("value",view.Form.getFormattedDate(year,1));
-	view.Form._jTo.prop("value",view.Form.getFormattedDate(year,12));
+view.Editbox.toggle = function() {
+	if(!view.Editbox._hasAuth) return;
+	if(view.Editbox._isOpened) view.Editbox.close(); else view.Editbox.open();
 };
-view.Form.submit = function(event) {
-	var keyword = view.Form._jKeyword.prop("value");
-	var from = view.Form.getDateNumber(view.Form._jFrom.prop("value"));
-	var to = view.Form.getDateNumber(view.Form._jTo.prop("value"));
-	utils.Data.load(keyword,from,to);
-	return false;
+view.Editbox.edit = function(id) {
+	if(!view.Editbox._hasAuth) {
+		jp.saken.utils.Handy.alert("無効な操作です。");
+		return;
+	}
+	view.Editbox.open();
 };
-view.Form.getDateNumber = function(date) {
-	return StringTools.replace(date,"-","");
+view.Editbox.open = function() {
+	if(view.Editbox._isOpened) return;
+	view.Editbox._isOpened = true;
+	view.Editbox.move(view.Editbox._width);
 };
-view.Form.getFormattedDate = function(year,month) {
-	return year + "-" + jp.saken.utils.Handy.getFilledNumber(month,2);
+view.Editbox.close = function() {
+	if(!view.Editbox._isOpened) return;
+	view.Editbox._isOpened = false;
+	view.Editbox.move(0);
+};
+view.Editbox.move = function(x) {
+	view.Editbox._jMainArea.stop().animate({ left : x},200);
+};
+view.Editbox.setSales = function() {
+	jp.saken.utils.API.getJSON("members",(function($this) {
+		var $r;
+		var _g = new haxe.ds.StringMap();
+		_g.set("section","sales");
+		$r = _g;
+		return $r;
+	}(this)),function(data) {
+		var map = jp.saken.utils.Handy.getMap(data);
+		var html = "";
+		var $it0 = map.keys();
+		while( $it0.hasNext() ) {
+			var key = $it0.next();
+			html += "<option value=\"" + key + "\">" + Std.string(map.get(key)) + "</option>";
+		}
+		view.Editbox._jParent.find(".sales").find("select").html(html);
+	});
+};
+view.Editbox.setHasAuth = function() {
+	jp.saken.utils.API.getString("members",(function($this) {
+		var $r;
+		var _g = new haxe.ds.StringMap();
+		_g.set("auth","web");
+		$r = _g;
+		return $r;
+	}(this)),function(data) {
+		view.Editbox._hasAuth = data == "true";
+	});
 };
 view.Html = function() { };
 view.Html.__name__ = true;
@@ -617,7 +705,7 @@ view.Html.get = function(map) {
 };
 view.Html.getMonthlyWorks = function(key,array) {
 	var monthlyCost = 0;
-	var html = "\n\t\t<tr class=\"date\">\n\t\t\t<th colspan=\"" + 6 + "\">" + view.Html.getFormattedDate(key) + "</th>\n\t\t</tr>";
+	var html = "\n\t\t<tr class=\"date\">\n\t\t\t<th colspan=\"" + 7 + "\">" + view.Html.getFormattedDate(key) + "</th>\n\t\t</tr>";
 	var _g1 = 0;
 	var _g = array.length;
 	while(_g1 < _g) {
@@ -627,18 +715,19 @@ view.Html.getMonthlyWorks = function(key,array) {
 		monthlyCost += info.cost;
 	}
 	view.Html._totalCost += monthlyCost;
-	html += "\n\t\t<tr class=\"monthly-cost\">\n\t\t\t<td class=\"cost\" colspan=\"" + 6 + "\">月計：" + jp.saken.utils.Handy.getFormattedPrice(monthlyCost) + "</td>\n\t\t</tr>\n\t\t<tr class=\"total-cost\">\n\t\t\t<td class=\"cost\" colspan=\"" + 6 + "\">累計：" + jp.saken.utils.Handy.getFormattedPrice(view.Html._totalCost) + "</td>\n\t\t</tr>\n\t\t<tr class=\"blank\"><td colspan=\"" + 6 + "\"></td></tr>";
+	html += "\n\t\t<tr class=\"monthly-cost\">\n\t\t\t<td class=\"cost\" colspan=\"" + 7 + "\">月計：" + jp.saken.utils.Handy.getFormattedPrice(monthlyCost) + "</td>\n\t\t</tr>\n\t\t<tr class=\"total-cost\">\n\t\t\t<td class=\"cost\" colspan=\"" + 7 + "\">累計：" + jp.saken.utils.Handy.getFormattedPrice(view.Html._totalCost) + "</td>\n\t\t</tr>\n\t\t<tr class=\"blank\"><td colspan=\"" + 7 + "\"></td></tr>";
 	return html;
 };
 view.Html.getWork = function(info) {
 	var keys = ["number","client","name","members","sales","cost"];
-	var html = "<tr class=\"work\">";
+	var html = "<tr class=\"work\" data-id=\"" + Std.string(info.id) + "\">";
 	var _g1 = 0;
 	var _g = keys.length;
 	while(_g1 < _g) {
 		var i = _g1++;
 		html += view.Html.getTD(info,keys[i]);
 	}
+	html += "<td class=\"edit\"><button type=\"button\" class=\"edit-button\">✎</button></td>";
 	return html + "</tr>";
 };
 view.Html.getTD = function(info,key) {
@@ -681,16 +770,49 @@ view.Html.getFormattedDate = function(date) {
 	if(date == null) string = "null"; else string = "" + date;
 	return HxOverrides.substr(string,0,4) + "." + HxOverrides.substr(string,4,2);
 };
+view.Searchbox = function() { };
+view.Searchbox.__name__ = true;
+view.Searchbox.init = function() {
+	view.Searchbox._jParent = new js.JQuery("#searchbox");
+	view.Searchbox._jKeyword = view.Searchbox._jParent.find(".keyword").find("input");
+	view.Searchbox._jFrom = view.Searchbox._jParent.find(".from").find("input");
+	view.Searchbox._jTo = view.Searchbox._jParent.find(".to").find("input");
+	view.Searchbox._jSubmit = view.Searchbox._jParent.find(".submit").find("button");
+	view.Searchbox.setYear(new Date().getFullYear());
+	view.Searchbox._jSubmit.on("click",view.Searchbox.submit).trigger("click");
+};
+view.Searchbox.setYear = function(year) {
+	view.Searchbox._jFrom.prop("value",view.Searchbox.getFormattedDate(year,1));
+	view.Searchbox._jTo.prop("value",view.Searchbox.getFormattedDate(year,12));
+};
+view.Searchbox.submit = function(event) {
+	var keyword = view.Searchbox._jKeyword.prop("value");
+	var from = view.Searchbox.getDateNumber(view.Searchbox._jFrom.prop("value"));
+	var to = view.Searchbox.getDateNumber(view.Searchbox._jTo.prop("value"));
+	utils.Data.load(keyword,from,to);
+	return false;
+};
+view.Searchbox.getDateNumber = function(date) {
+	return StringTools.replace(date,"-","");
+};
+view.Searchbox.getFormattedDate = function(year,month) {
+	return year + "-" + jp.saken.utils.Handy.getFilledNumber(month,2);
+};
 view.Works = function() { };
 view.Works.__name__ = true;
 view.Works.init = function() {
 	view.Works._jParent = new js.JQuery("#works");
+	view.Works._jParent.on("click",view.Works.onClick);
 };
 view.Works.setHTML = function(map) {
 	view.Works._jParent.html(view.Html.get(map));
 };
 view.Works.setEmptyHTML = function() {
 	view.Works._jParent.html("<tr><th>検索結果：0件<th></tr>");
+};
+view.Works.onClick = function(event) {
+	var jTarget = new js.JQuery(event.target);
+	if(jTarget.hasClass("edit-button")) view.Editbox.edit(jTarget.parents(".work").data("id"));
 };
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; }
 var $_, $fid = 0;
@@ -718,6 +840,6 @@ jp.saken.utils.Dom.jBody = new js.JQuery(jp.saken.utils.Dom.body);
 jp.saken.utils.Dom.userAgent = jp.saken.utils.Dom.window.navigator.userAgent;
 utils.Data.API_NAME = "webResults2";
 utils.Data.MY_IP = "192.168.0.39";
-view.Html.COLUMN_LENGTH = 6;
+view.Html.COLUMN_LENGTH = 7;
 Main.main();
 })();

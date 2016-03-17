@@ -4,7 +4,7 @@ import js.JQuery;
 import jp.saken.utils.Handy;
 import utils.Data;
 
-class Form {
+class Searchbox {
 	
 	private static var _jParent :JQuery;
 	private static var _jKeyword:JQuery;
@@ -17,7 +17,7 @@ class Form {
 	========================================================================== */
 	public static function init():Void {
 		
-		_jParent  = new JQuery('#form');
+		_jParent  = new JQuery('#searchbox');
 		_jKeyword = _jParent.find('.keyword').find('input');
 		_jFrom    = _jParent.find('.from').find('input');
 		_jTo      = _jParent.find('.to').find('input');

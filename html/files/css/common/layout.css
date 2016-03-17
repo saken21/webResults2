@@ -3,11 +3,65 @@
 @import "base.css";
 
 /*-------------------------------------------------------------------------
+	Form
+/*-----------------------------------------------------------------------*/
+input,
+textarea {
+	padding:5px;
+	border:1px solid #aaa;
+	background:#fafafa;
+	font-size:12px;
+	line-height:1.8;
+}
+
+input {
+	resize:none;
+	height:20px;
+}
+
+input[type="text"] {
+	width:200px;
+}
+
+input[type="number"] {
+	text-align:right;
+}
+
+button {
+	height:32px;
+	padding:0 20px;
+	border:none;
+	border-radius:3px;
+	background:#329fba;
+	color:#fff;
+	font-size:14px;
+	text-align:center;
+	text-indent:.5em;
+	letter-spacing:.5em;
+	cursor:pointer;
+}
+
+button:hover {
+	background-color:#53b7d0;
+}
+
+/*-------------------------------------------------------------------------
 	All
 /*-----------------------------------------------------------------------*/
+html,
+body,
 #all {
-	padding:120px 20px 0 20px;
+	height:100%;
+}
+
+body {
+	overflow-x:hidden;
+}
+
+#all {
+	position:relative;
 	background:#fff;
+	z-index:10;
 }
 
 /*-------------------------------------------------------------------------
@@ -23,6 +77,7 @@
 	border-top:3px solid #329fba;
 	border-bottom:1px solid #ccc;
 	background:#fff;
+	z-index:100;
 }
 
 	#header .wrap {
@@ -37,59 +92,27 @@
 		letter-spacing:1px;
 	}
 		
-	#form {
+	#searchbox {
 		float:right;
 	}
 	
-		#form p,
-		#form ul {
+		#searchbox p,
+		#searchbox ul {
 			float:left;
 			margin-right:10px;
 		}
 		
-			#form ul li {
+			#searchbox ul li {
 				float:left;
 			}
 			
-		#form .submit {
+		#searchbox .submit {
 			margin:0 0 0 5px;
 		}
 		
-		#form .from:after {
+		#searchbox .from:after {
 			display:inline-block;
 			content:"-";
 			visibility:visible;
 			margin:0 5px;
-		}
-		
-		#form input {
-			resize:none;
-			height:20px;
-			padding:5px;
-			border:1px solid #aaa;
-			background:#fafafa;
-			font-size:12px;
-			line-height:1.8;
-		}
-		
-		#form input[type="text"] {
-			width:200px;
-		}
-		
-		#form button {
-			height:32px;
-			padding:0 20px;
-			border:none;
-			border-radius:3px;
-			background:#329fba;
-			color:#fff;
-			font-size:14px;
-			text-align:center;
-			text-indent:.5em;
-			letter-spacing:.5em;
-			cursor:pointer;
-		}
-		
-		#form button:hover {
-			background-color:#53b7d0;
 		}

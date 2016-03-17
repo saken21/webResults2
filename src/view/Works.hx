@@ -13,6 +13,7 @@ class Works {
 	public static function init():Void {
 		
 		_jParent = new JQuery('#works');
+		_jParent.on('click',onClick);
 		
 	}
 	
@@ -33,5 +34,18 @@ class Works {
 			_jParent.html('<tr><th>検索結果：0件<th></tr>');
 
 		}
+	
+	/* =======================================================================
+	On Click
+	========================================================================== */
+	private static function onClick(event:JqEvent):Void {
+		
+		var jTarget:JQuery = new JQuery(event.target);
+		
+		if (jTarget.hasClass('edit-button')) {
+			Editbox.edit(jTarget.parents('.work').data('id'));
+		}
+
+	}
 
 }

@@ -7,7 +7,7 @@ import utils.Data;
 class Html {
 	
 	private static var _totalCost:Int;
-	private static inline var COLUMN_LENGTH:Int = 6;
+	private static inline var COLUMN_LENGTH:Int = 7;
 	
 	/* =======================================================================
 	Public - Get
@@ -68,11 +68,13 @@ class Html {
 	private static function getWork(info:Dynamic):String {
 		
 		var keys:Array<String> = ['number','client','name','members','sales','cost'];
-		var html:String = '<tr class="work">';
+		var html:String = '<tr class="work" data-id="' + info.id + '">';
 		
 		for (i in 0...keys.length) {
 			html += getTD(info,keys[i]);
 		}
+		
+		html += '<td class="edit"><button type="button" class="edit-button">✎</button></td>';
 		
 		return html + '</tr>';
 		
