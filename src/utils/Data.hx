@@ -41,6 +41,21 @@ class Data {
 		
 	}
 	
+		/* =======================================================================
+		Public - Insert
+		========================================================================== */
+		public static function insert(params:ParamMap,onLoaded:Void->Void):Void {
+			
+			params['mode'] = 'insert';
+
+			API.getString(API_NAME,params,function(data:String):Void {
+				
+				trace(data);
+				onLoaded();
+			});
+
+		}
+	
 	/* =======================================================================
 	On Loaded
 	========================================================================== */

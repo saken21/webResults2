@@ -93,8 +93,8 @@ class Html {
 			
 		} else {
 			
-			var value:String = Reflect.getProperty(info,key);
-			if (value == null) value = '';
+			var value:String = Std.string(Reflect.getProperty(info,key));
+			if (value == 'null') value = '';
 			
 			switch (key) {
 				

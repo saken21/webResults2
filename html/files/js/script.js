@@ -1,4 +1,74 @@
 (function () { "use strict";
+var DateTools = function() { };
+DateTools.__name__ = true;
+DateTools.__format_get = function(d,e) {
+	switch(e) {
+	case "%":
+		return "%";
+	case "C":
+		return StringTools.lpad(Std.string(Std["int"](d.getFullYear() / 100)),"0",2);
+	case "d":
+		return StringTools.lpad(Std.string(d.getDate()),"0",2);
+	case "D":
+		return DateTools.__format(d,"%m/%d/%y");
+	case "e":
+		return Std.string(d.getDate());
+	case "H":case "k":
+		return StringTools.lpad(Std.string(d.getHours()),e == "H"?"0":" ",2);
+	case "I":case "l":
+		var hour = d.getHours() % 12;
+		return StringTools.lpad(Std.string(hour == 0?12:hour),e == "I"?"0":" ",2);
+	case "m":
+		return StringTools.lpad(Std.string(d.getMonth() + 1),"0",2);
+	case "M":
+		return StringTools.lpad(Std.string(d.getMinutes()),"0",2);
+	case "n":
+		return "\n";
+	case "p":
+		if(d.getHours() > 11) return "PM"; else return "AM";
+		break;
+	case "r":
+		return DateTools.__format(d,"%I:%M:%S %p");
+	case "R":
+		return DateTools.__format(d,"%H:%M");
+	case "s":
+		return Std.string(Std["int"](d.getTime() / 1000));
+	case "S":
+		return StringTools.lpad(Std.string(d.getSeconds()),"0",2);
+	case "t":
+		return "\t";
+	case "T":
+		return DateTools.__format(d,"%H:%M:%S");
+	case "u":
+		var t = d.getDay();
+		if(t == 0) return "7"; else if(t == null) return "null"; else return "" + t;
+		break;
+	case "w":
+		return Std.string(d.getDay());
+	case "y":
+		return StringTools.lpad(Std.string(d.getFullYear() % 100),"0",2);
+	case "Y":
+		return Std.string(d.getFullYear());
+	default:
+		throw "Date.format %" + e + "- not implemented yet.";
+	}
+};
+DateTools.__format = function(d,f) {
+	var r = new StringBuf();
+	var p = 0;
+	while(true) {
+		var np = f.indexOf("%",p);
+		if(np < 0) break;
+		r.addSub(f,p,np - p);
+		r.add(DateTools.__format_get(d,HxOverrides.substr(f,np + 1,1)));
+		p = np + 2;
+	}
+	r.addSub(f,p,f.length - p);
+	return r.b;
+};
+DateTools.format = function(d,f) {
+	return DateTools.__format(d,f);
+};
 var EReg = function(r,opt) {
 	opt = opt.split("u").join("");
 	this.r = new RegExp(r,opt);
@@ -147,6 +217,9 @@ Std.__name__ = true;
 Std.string = function(s) {
 	return js.Boot.__string_rec(s,"");
 };
+Std["int"] = function(x) {
+	return x | 0;
+};
 Std.parseInt = function(x) {
 	var v = parseInt(x,10);
 	if(v == 0 && (HxOverrides.cca(x,1) == 120 || HxOverrides.cca(x,1) == 88)) v = parseInt(x);
@@ -161,9 +234,17 @@ StringBuf.prototype = {
 	add: function(x) {
 		this.b += Std.string(x);
 	}
+	,addSub: function(s,pos,len) {
+		if(len == null) this.b += HxOverrides.substr(s,pos,null); else this.b += HxOverrides.substr(s,pos,len);
+	}
 };
 var StringTools = function() { };
 StringTools.__name__ = true;
+StringTools.lpad = function(s,c,l) {
+	if(c.length <= 0) return s;
+	while(s.length < l) s = c + s;
+	return s;
+};
 StringTools.replace = function(s,sub,by) {
 	return s.split(sub).join(by);
 };
@@ -255,6 +336,22 @@ haxe.Http.prototype = {
 	,onError: function(msg) {
 	}
 	,onStatus: function(status) {
+	}
+};
+haxe.Timer = function(time_ms) {
+	var me = this;
+	this.id = setInterval(function() {
+		me.run();
+	},time_ms);
+};
+haxe.Timer.__name__ = true;
+haxe.Timer.prototype = {
+	stop: function() {
+		if(this.id == null) return;
+		clearInterval(this.id);
+		this.id = null;
+	}
+	,run: function() {
 	}
 };
 haxe.ds = {};
@@ -352,6 +449,25 @@ jp.saken.utils.API.getIP = function(onLoaded) {
 var js = {};
 jp.saken.utils.Dom = function() { };
 jp.saken.utils.Dom.__name__ = true;
+jp.saken.utils.File = function() { };
+jp.saken.utils.File.__name__ = true;
+jp.saken.utils.File.downloadDirect = function(folder,filename) {
+	var jAnchor = new js.JQuery("<a>");
+	jAnchor.prop("download",filename);
+	jAnchor.prop("href",folder + filename);
+	jAnchor.prop("target","_blank");
+	jp.saken.utils.Dom.jBody.append(jAnchor);
+	jAnchor.get(0).click();
+	jAnchor.remove();
+};
+jp.saken.utils.File.readAsDataURL = function(onLoaded) {
+	var file = event.target.files[0];
+	var fileReader = new FileReader();
+	fileReader.onload = function(event) {
+		onLoaded(event.target.result);
+	};
+	fileReader.readAsDataURL(file);
+};
 jp.saken.utils.Handy = function() { };
 jp.saken.utils.Handy.__name__ = true;
 jp.saken.utils.Handy.alert = function(value) {
@@ -469,6 +585,21 @@ jp.saken.utils.Handy.getMap = function(array) {
 	}
 	return map;
 };
+jp.saken.utils.Loader = function() { };
+jp.saken.utils.Loader.__name__ = true;
+jp.saken.utils.Loader.loadImage = function(src,onLoaded) {
+	var image = new Image();
+	image.src = src;
+	image.onload = function(event) {
+		var splits = src.split(";base64,");
+		var type = splits[0].split("data:image/")[1];
+		var jImage = new js.JQuery(image);
+		if(type == "jpeg") type = "jpg";
+		jImage.data("type",type);
+		jImage.data("base64",splits[1]);
+		onLoaded(jImage);
+	};
+};
 js.Boot = function() { };
 js.Boot.__name__ = true;
 js.Boot.__string_rec = function(o,s) {
@@ -581,6 +712,14 @@ utils.Data.load = function(keyword,from,to) {
 		utils.Data.onLoaded(data);
 	});
 };
+utils.Data.insert = function(params,onLoaded) {
+	params.set("mode","insert");
+	"insert";
+	jp.saken.utils.API.getString("webResults2",params,function(data) {
+		console.log(data);
+		onLoaded();
+	});
+};
 utils.Data.onLoaded = function(data) {
 	if(data.length > 0) view.Works.setHTML(utils.Data.getSplitedData(data)); else view.Works.setEmptyHTML();
 	utils.Data.traceMembersCost(data);
@@ -633,10 +772,17 @@ view.Editbox.__name__ = true;
 view.Editbox.init = function() {
 	view.Editbox._jParent = new js.JQuery("#editbox");
 	view.Editbox._jMainArea = new js.JQuery("#all").add(new js.JQuery("#header"));
+	view.Editbox._jCover = view.Editbox._jParent.find(".cover");
+	view.Editbox._jColumns = view.Editbox._jParent.find("[data-column]");
+	view.Editbox._jPreview = view.Editbox._jParent.find(".image").find(".preview");
 	view.Editbox._width = view.Editbox._jParent.width();
 	view.Editbox._isOpened = false;
+	view.Editbox._jParent.on("change",view.Editbox.onChange);
+	view.Editbox._jParent.find(".submit").find("button").on("click",view.Editbox.submit);
+	view.Editbox.setRatio();
 	view.Editbox.setSales();
 	view.Editbox.setHasAuth();
+	view.Editbox.setDefault();
 };
 view.Editbox.toggle = function() {
 	if(!view.Editbox._hasAuth) return;
@@ -648,6 +794,17 @@ view.Editbox.edit = function(id) {
 		return;
 	}
 	view.Editbox.open();
+};
+view.Editbox.setDefault = function() {
+	view.Editbox._jColumns.prop("value","");
+	view.Editbox._jColumns.filter("[type=\"radio\"]").prop("checked",true);
+	view.Editbox._jColumns.filter("select").each(function() {
+		var jTarget = $(this);
+		jTarget.prop("value",jTarget.find("option").first().prop("value"));
+	});
+	view.Editbox._jParent.find(".ratio-input").prop("value",0).trigger("change");
+	view.Editbox._jParent.find("#editbox-date").prop("value",DateTools.format(new Date(),"%Y-%m"));
+	view.Editbox._jPreview.empty();
 };
 view.Editbox.open = function() {
 	if(view.Editbox._isOpened) return;
@@ -662,6 +819,95 @@ view.Editbox.close = function() {
 view.Editbox.move = function(x) {
 	view.Editbox._jMainArea.stop().animate({ left : x},200);
 };
+view.Editbox.onChange = function(event) {
+	var jTarget = new js.JQuery(event.target);
+	if(jTarget.hasClass("ratio-input")) {
+		var jParent = jTarget.parents(".ratio");
+		var total = 0;
+		jParent.find("input[type=\"number\"]").each(function() {
+			total += Std.parseInt($(this).prop("value"));
+		});
+		jParent.find(".total").text(total == null?"null":"" + total);
+	} else if(jTarget.hasClass("image-input")) jp.saken.utils.File.readAsDataURL(view.Editbox.loadImage);
+};
+view.Editbox.loadImage = function(src) {
+	jp.saken.utils.Loader.loadImage(src,function(jImage) {
+		view.Editbox._jPreview.empty().append(jImage);
+	});
+};
+view.Editbox.submit = function(event) {
+	var jRequired = view.Editbox._jParent.find("input[required]");
+	var _g1 = 0;
+	var _g = jRequired.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		if(jRequired.eq(i).prop("value").length == 0) return;
+	}
+	view.Editbox._jCover.show();
+	utils.Data.insert(view.Editbox.getParams(),function() {
+		var timer = new haxe.Timer(1000);
+		timer.run = function() {
+			timer.stop();
+			view.Editbox.setDefault();
+			view.Editbox._jCover.hide();
+		};
+	});
+	return false;
+};
+view.Editbox.getParams = function() {
+	var params = new haxe.ds.StringMap();
+	view.Editbox._jColumns.each(function() {
+		var jTarget = $(this);
+		var key = jTarget.data("column");
+		var value = jTarget.prop("value");
+		if(jTarget["is"]("[type=\"radio\"]")) if(jTarget["is"](":checked")) value = "0"; else value = "1";
+		if(value.length == 0) return;
+		if(key == "date") value = StringTools.replace(value,"-","");
+		params.set(key,value);
+		value;
+	});
+	var v = view.Editbox.getRatioList();
+	params.set("ratio_list",v);
+	v;
+	var imageSRC = view.Editbox._jPreview.find("img").prop("src");
+	if(imageSRC != null) {
+		params.set("image",imageSRC);
+		imageSRC;
+	}
+	return params;
+};
+view.Editbox.getRatioList = function() {
+	var array = [];
+	view.Editbox._jParent.find(".ratio").find(".member").each(function() {
+		var jTarget = $(this);
+		var id = jTarget.data("id");
+		var value = jTarget.find("input").prop("value");
+		if(value == "0") return;
+		array.push(id + "=" + value);
+	});
+	return array.join(",");
+};
+view.Editbox.setRatio = function() {
+	jp.saken.utils.API.getJSON("members",(function($this) {
+		var $r;
+		var _g = new haxe.ds.StringMap();
+		_g.set("team","web");
+		$r = _g;
+		return $r;
+	}(this)),function(data) {
+		var html = "";
+		var _g2 = 0;
+		var _g1 = data.length;
+		while(_g2 < _g1) {
+			var i = _g2++;
+			var info = data[i];
+			var id = info.id;
+			var inputID = "editbox-ratio-" + id;
+			html += "\n\t\t\t\t<dd class=\"member\" data-id=\"" + id + "\">\n\t\t\t\t\t<label for=\"" + inputID + "\">" + info.name.split(" ")[0] + "</label>\n\t\t\t\t\t<input type=\"number\" min=\"0\" max=\"100\" value=\"0\" class=\"ratio-input\" id=\"" + inputID + "\">\n\t\t\t\t</dd>";
+		}
+		view.Editbox._jParent.find(".ratio").append(html + "<dd class=\"total\">0</dd>");
+	});
+};
 view.Editbox.setSales = function() {
 	jp.saken.utils.API.getJSON("members",(function($this) {
 		var $r;
@@ -670,12 +916,13 @@ view.Editbox.setSales = function() {
 		$r = _g;
 		return $r;
 	}(this)),function(data) {
-		var map = jp.saken.utils.Handy.getMap(data);
 		var html = "";
-		var $it0 = map.keys();
-		while( $it0.hasNext() ) {
-			var key = $it0.next();
-			html += "<option value=\"" + key + "\">" + Std.string(map.get(key)) + "</option>";
+		var _g2 = 0;
+		var _g1 = data.length;
+		while(_g2 < _g1) {
+			var i = _g2++;
+			var info = data[i];
+			html += "<option value=\"" + Std.string(info.id) + "\">" + Std.string(info.name) + "</option>";
 		}
 		view.Editbox._jParent.find(".sales").find("select").html(html);
 	});
@@ -733,8 +980,8 @@ view.Html.getWork = function(info) {
 view.Html.getTD = function(info,key) {
 	var content = "";
 	if(key == "members") content = view.Html.getMembers(info.ratio_list.split(",")); else {
-		var value = Reflect.getProperty(info,key);
-		if(value == null) value = "";
+		var value = Std.string(Reflect.getProperty(info,key));
+		if(value == "null") value = "";
 		switch(key) {
 		case "cost":
 			content = jp.saken.utils.Handy.getFormattedPrice(Std.parseInt(value));

@@ -6,7 +6,7 @@
 	Works
 /*-----------------------------------------------------------------------*/
 #works {
-	padding:105px 20px 0 20px;
+	padding:110px 20px 0 20px;
 	background:#fff;
 }
 
@@ -110,6 +110,18 @@
 	z-index:0;
 }
 
+	#editbox .cover {
+		display:none;
+		opacity:.8;
+		position:fixed;
+		left:0;
+		top:0;
+		width:600px;
+		height:100%;
+		background:#fff url(../img/loading.gif) no-repeat center center;
+		z-index:1;
+	}
+
 	#editbox form {
 		padding:40px 10px;
 	}
@@ -124,22 +136,27 @@
 	}
 	
 	#editbox textarea {
-		height:60px;
+		height:181px;
 	}
 	
 	#editbox dl {
 		float:left;
+		position:relative;
 		width:250px;
 		margin:0 15px 25px 15px;
 	}
 	
 	#editbox dl.ratio,
 	#editbox dl.sales {
+		clear:both;
 		float:none;
 	}
 	
-	#editbox dl.url,
-	#editbox dl.text {
+	#editbox dl.ratio {
+		width:542px;
+	}
+	
+	#editbox dl.url {
 		width:530px;
 	}
 	
@@ -152,6 +169,43 @@
 		#editbox dl dt {
 			font-weight:bold;
 		}
+		
+		#editbox dl.ratio dt {
+			margin-bottom:15px;
+		}
+		
+		#editbox dl.ratio dd {
+			float:left;
+			margin:0 15px 10px 0;
+			line-height:30px;
+		}
+		
+		#editbox dl.ratio dd.total {
+			position:absolute;
+			right:0;
+			bottom:0;
+			margin:0;
+			font-size:14px;
+			font-weight:bold;
+		}
+		
+		#editbox dl.ratio dd.total:before {
+			content:"計：";
+		}
+		
+			#editbox dl.ratio dd label,
+			#editbox dl.ratio dd input {
+				float:left;
+			}
+			
+			#editbox dl.ratio dd label:after {
+				content:":";
+				margin:0 5px;
+			}
+			
+			#editbox dl.ratio dd input {
+				width:50px;
+			}
 	
 			#editbox dl dd label.radio {
 				display:inline-block;
@@ -184,6 +238,24 @@
 			#editbox dl dd input[type="radio"]:checked + .radio {
 				background-color:#329fba;
 				cursor:default;
+			}
+			
+		#editbox dl.image dd {
+			float:left;
+		}
+			
+		#editbox dl.image dd.preview {
+			width:260px;
+			height:160px;
+			border:1px solid #aaa;
+			border-top:none;
+			background:#ddd;
+			text-align:center;
+		}
+		
+			#editbox dl.image dd.preview img {
+				height:100%;
+				max-width:260px;
 			}
 			
 	#editbox .submit {

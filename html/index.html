@@ -32,47 +32,47 @@
 	</section>
 </section>
 <section id="editbox">
+	<div class="cover"></div>
     <form>
         <dl class="number">
             <dt><label for="editbox-number">発注番号</label></dt>
-            <dd><input type="text" id="editbox-number"></dd>
+            <dd><input type="text" id="editbox-number" data-column="number"></dd>
         </dl>
         <dl class="date">
             <dt><label for="editbox-date">請求年月</label></dt>
-            <dd><input type="month" id="editbox-date"></dd>
+            <dd><input type="month" id="editbox-date" required data-column="date"></dd>
         </dl>
         <dl class="client">
             <dt><label for="editbox-client">クライアント名</label></dt>
-            <dd><input type="text" id="editbox-client"></dd>
+            <dd><input type="text" id="editbox-client" required data-column="client"></dd>
         </dl>
         <dl class="name">
             <dt><label for="editbox-name">案件名</label></dt>
-            <dd><input type="text" id="editbox-name"></dd>
+            <dd><input type="text" id="editbox-name" required data-column="name"></dd>
         </dl>
         <dl class="ratio">
-            <dt><label for="editbox-ratio">担当割合</label></dt>
-            <dd><select></select></dd>
+            <dt><label>担当割合</label></dt>
         </dl>
         <dl class="sales">
             <dt><label for="editbox-sales">担当営業</label></dt>
-            <dd><select></select></dd>
+            <dd><select id="editbox-sales" data-column="sales_member_id"></select></dd>
         </dl>
         <dl class="cost">
             <dt><label for="editbox-cost">制作費</label></dt>
-            <dd><input type="number" min="0" id="editbox-cost"></dd>
+            <dd><input type="number" min="0" id="editbox-cost" data-column="cost"></dd>
         </dl>
         <dl class="price">
             <dt><label for="editbox-price">売値</label></dt>
-            <dd><input type="number" min="0" id="editbox-price"></dd>
+            <dd><input type="number" min="0" id="editbox-price" data-column="price"></dd>
         </dl>
         <dl class="url">
             <dt><label for="editbox-url">URL</label></dt>
-            <dd><input type="text" id="editbox-url"></dd>
+            <dd><input type="text" id="editbox-url" data-column="url"></dd>
         </dl>
         <dl class="help">
             <dt><label>ヘルプ案件</label></dt>
             <dd>
-            	<input type="radio" name="help" id="editbox-help-off" checked>
+            	<input type="radio" name="help" id="editbox-help-off" checked data-column="is_help">
                 <label for="editbox-help-off" class="radio off">OFF</label>
                 <input type="radio" name="help" id="editbox-help-on">
                 <label for="editbox-help-on" class="radio on">ON</label>
@@ -81,7 +81,7 @@
         <dl class="public">
             <dt><label>一般公開可能</label></dt>
             <dd>
-            	<input type="radio" name="public" id="editbox-public-off" checked>
+            	<input type="radio" name="public" id="editbox-public-off" checked data-column="is_public">
                 <label for="editbox-public-off" class="radio off">OFF</label>
                 <input type="radio" name="public" id="editbox-public-on">
                 <label for="editbox-public-on" class="radio on">ON</label>
@@ -89,11 +89,12 @@
         </dl>
         <dl class="image">
             <dt><label for="editbox-image">スクリーンショット</label></dt>
-            <dd><input type="file" id="editbox-image"></dd>
+            <dd><input type="file" class="image-input" id="editbox-image" data-column="image"></dd>
+            <dd class="preview"></dd>
         </dl>
-        <dl class="text">
-            <dt><label for="editbox-text">コメント</label></dt>
-            <dd><textarea id="editbox-text"></textarea></dd>
+        <dl class="note">
+            <dt><label for="editbox-note">コメント</label></dt>
+            <dd><textarea id="editbox-note" data-column="note"></textarea></dd>
         </dl>
         <p class="submit"><button type="submit">登録</button></p>
     </form>
