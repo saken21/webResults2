@@ -806,7 +806,6 @@ view.Editbox.init = function() {
 	view.Editbox.setRatio();
 	view.Editbox.setSales();
 	view.Editbox.setHasAuth();
-	view.Editbox.setDefault();
 };
 view.Editbox.toggle = function() {
 	if(!view.Editbox._hasAuth) return;
@@ -882,6 +881,7 @@ view.Editbox.open = function() {
 	if(view.Editbox._isOpened) return;
 	view.Editbox._isOpened = true;
 	view.Editbox.move(view.Editbox._width);
+	view.Editbox.setDefault();
 };
 view.Editbox.close = function() {
 	if(!view.Editbox._isOpened) return;

@@ -42,8 +42,6 @@ class Editbox {
 		setSales();
 		setHasAuth();
 		
-		setDefault();
-		
 	}
 	
 		/* =======================================================================
@@ -174,6 +172,8 @@ class Editbox {
 		
 		_isOpened = true;
 		move(_width);
+		
+		setDefault();
 
 	}
 	
