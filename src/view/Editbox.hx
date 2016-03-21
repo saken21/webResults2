@@ -19,6 +19,7 @@ class Editbox {
 	private static var _width    :Int;
 	private static var _isOpened :Bool;
 	private static var _hasAuth  :Bool;
+	private static var _currentID:Int;
 	
 	/* =======================================================================
 	Public - Init
@@ -52,6 +53,8 @@ class Editbox {
 			
 			if (!_hasAuth) return;
 			
+			_currentID = null;
+			
 			if (_isOpened) close();
 			else open();
 
@@ -69,7 +72,10 @@ class Editbox {
 				
 			}
 			
+			_currentID = id;
 			open();
+			
+			Data.loadOne(id,setData);
 
 		}
 		
@@ -92,6 +98,70 @@ class Editbox {
 		_jParent.find('#editbox-date').prop('value',DateTools.format(Date.now(),"%Y-%m"));
 		
 		_jPreview.empty();
+
+	}
+	
+	/* =======================================================================
+	Set Data
+	========================================================================== */
+	private static function setData(data:Dynamic):Void {
+		
+		function setDate(jTarget:JQuery,value:Int):Void {
+			
+			var date:String = Html.getFormattedDate(value,'-');
+			jTarget.prop('value',date);
+			
+		}
+		
+		function setRadio(jTarget:JQuery,isOn:Bool):Void {
+			
+			if (!isOn) return;
+			
+			jTarget.prop('checked',false);
+			jTarget.nextAll('input').prop('checked',true);
+			
+		}
+		
+		function setRatio(jParent:JQuery,data:String):Void {
+			
+			if (data == null) return;
+
+			var ratios:Array<String> = data.split(',');
+
+			for (i in 0...ratios.length) {
+
+				var ratio:String = ratios[i];
+				var splits:Array<String> = ratio.split('=');
+
+				var id   :String = splits[0];
+				var value:String = splits[1];
+
+				jParent.find('.ratio-input[data-id="' + id + '"]').prop('value',value);
+
+			}
+
+			jParent.find('.ratio-input').trigger('change');
+			
+		}
+		
+		_jColumns.each(function():Void {
+			
+			var jTarget:JQuery = JQuery.cur;
+			var column :String = jTarget.data('column');
+			var value  :String = Reflect.getProperty(data,column);
+			
+			switch (column) {
+				
+				case 'date'                : setDate(jTarget,Std.parseInt(value));
+				case 'is_help','is_public' : setRadio(jTarget,value == '1');
+				case 'image'               : _jPreview.html('<img src="' + value + '">');
+				default                    : jTarget.prop('value',value);
+				
+			}
+			
+		});
+		
+		setRatio(_jParent.find('.ratio'),data.ratio_list);
 
 	}
 	
@@ -182,23 +252,38 @@ class Editbox {
 		
 		_jCover.show();
 		
-		Data.insert(getParams(),function():Void {
-			
-			var timer:Timer = new Timer(1000);
-			
-			timer.run = function():Void {
-				
-				timer.stop();
-				setDefault();
-				
-				_jCover.hide();
-				
-			};
-		
-		});
+		if (_currentID == null) Data.insert(getParams(),onUpdated);
+		else Data.update(_currentID,getParams(),onUpdated);
 		
 		return untyped false;
 
+	}
+	
+	/* =======================================================================
+	On Updated
+	========================================================================== */
+	private static function onUpdated():Void {
+		
+		var timer:Timer = new Timer(1000);
+		
+		timer.run = function():Void {
+			
+			timer.stop();
+			setDefault();
+			
+			_jCover.hide();
+			
+			if (_currentID != null) {
+				
+				_currentID = null;
+				close();
+				
+			}
+			
+			Searchbox.reload();
+			
+		};
+		
 	}
 	
 	/* =======================================================================
@@ -275,7 +360,7 @@ class Editbox {
 				html += '
 				<dd class="member" data-id="' + id + '">
 					<label for="' + inputID + '">' + info.name.split(' ')[0] + '</label>
-					<input type="number" min="0" max="100" value="0" class="ratio-input" id="' + inputID + '">
+					<input type="number" min="0" max="100" value="0" class="ratio-input" id="' + inputID + '" data-id="' + id + '">
 				</dd>';
 				
 			}

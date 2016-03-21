@@ -715,14 +715,36 @@ utils.Data.load = function(keyword,from,to) {
 utils.Data.insert = function(params,onLoaded) {
 	params.set("mode","insert");
 	"insert";
-	jp.saken.utils.API.getString("webResults2",params,function(data) {
-		console.log(data);
-		onLoaded();
+	utils.Data.set(params,onLoaded);
+};
+utils.Data.update = function(id,params,onLoaded) {
+	var v;
+	if(id == null) v = "null"; else v = "" + id;
+	params.set("id",v);
+	v;
+	params.set("mode","update");
+	"update";
+	utils.Data.set(params,onLoaded);
+};
+utils.Data.loadOne = function(id,onLoaded) {
+	jp.saken.utils.API.getJSON("webResults2",(function($this) {
+		var $r;
+		var _g = new haxe.ds.StringMap();
+		_g.set("id",id == null?"null":"" + id);
+		$r = _g;
+		return $r;
+	}(this)),function(data) {
+		onLoaded(data[0]);
 	});
 };
 utils.Data.onLoaded = function(data) {
 	if(data.length > 0) view.Works.setHTML(utils.Data.getSplitedData(data)); else view.Works.setEmptyHTML();
 	utils.Data.traceMembersCost(data);
+};
+utils.Data.set = function(params,onLoaded) {
+	jp.saken.utils.API.getString("webResults2",params,function(data) {
+		onLoaded();
+	});
 };
 utils.Data.getSplitedData = function(data) {
 	var map = new haxe.ds.IntMap();
@@ -748,7 +770,9 @@ utils.Data.traceMembersCost = function(data) {
 		var _g = data.length;
 		while(_g1 < _g) {
 			var i = _g1++;
-			var ratios = data[i].ratio_list.split(",");
+			var ratioList = data[i].price_ratio_list;
+			if(ratioList == null) continue;
+			var ratios = ratioList.split(",");
 			var _g3 = 0;
 			var _g2 = ratios.length;
 			while(_g3 < _g2) {
@@ -786,6 +810,7 @@ view.Editbox.init = function() {
 };
 view.Editbox.toggle = function() {
 	if(!view.Editbox._hasAuth) return;
+	view.Editbox._currentID = null;
 	if(view.Editbox._isOpened) view.Editbox.close(); else view.Editbox.open();
 };
 view.Editbox.edit = function(id) {
@@ -793,7 +818,9 @@ view.Editbox.edit = function(id) {
 		jp.saken.utils.Handy.alert("無効な操作です。");
 		return;
 	}
+	view.Editbox._currentID = id;
 	view.Editbox.open();
+	utils.Data.loadOne(id,view.Editbox.setData);
 };
 view.Editbox.setDefault = function() {
 	view.Editbox._jColumns.prop("value","");
@@ -805,6 +832,51 @@ view.Editbox.setDefault = function() {
 	view.Editbox._jParent.find(".ratio-input").prop("value",0).trigger("change");
 	view.Editbox._jParent.find("#editbox-date").prop("value",DateTools.format(new Date(),"%Y-%m"));
 	view.Editbox._jPreview.empty();
+};
+view.Editbox.setData = function(data) {
+	var setDate = function(jTarget,value) {
+		var date = view.Html.getFormattedDate(value,"-");
+		jTarget.prop("value",date);
+	};
+	var setRadio = function(jTarget1,isOn) {
+		if(!isOn) return;
+		jTarget1.prop("checked",false);
+		jTarget1.nextAll("input").prop("checked",true);
+	};
+	var setRatio = function(jParent,data1) {
+		if(data1 == null) return;
+		var ratios = data1.split(",");
+		var _g1 = 0;
+		var _g = ratios.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var ratio = ratios[i];
+			var splits = ratio.split("=");
+			var id = splits[0];
+			var value1 = splits[1];
+			jParent.find(".ratio-input[data-id=\"" + id + "\"]").prop("value",value1);
+		}
+		jParent.find(".ratio-input").trigger("change");
+	};
+	view.Editbox._jColumns.each(function() {
+		var jTarget2 = $(this);
+		var column = jTarget2.data("column");
+		var value2 = Reflect.getProperty(data,column);
+		switch(column) {
+		case "date":
+			setDate(jTarget2,Std.parseInt(value2));
+			break;
+		case "is_help":case "is_public":
+			setRadio(jTarget2,value2 == "1");
+			break;
+		case "image":
+			view.Editbox._jPreview.html("<img src=\"" + value2 + "\">");
+			break;
+		default:
+			jTarget2.prop("value",value2);
+		}
+	});
+	setRatio(view.Editbox._jParent.find(".ratio"),data.ratio_list);
 };
 view.Editbox.open = function() {
 	if(view.Editbox._isOpened) return;
@@ -844,15 +916,21 @@ view.Editbox.submit = function(event) {
 		if(jRequired.eq(i).prop("value").length == 0) return;
 	}
 	view.Editbox._jCover.show();
-	utils.Data.insert(view.Editbox.getParams(),function() {
-		var timer = new haxe.Timer(1000);
-		timer.run = function() {
-			timer.stop();
-			view.Editbox.setDefault();
-			view.Editbox._jCover.hide();
-		};
-	});
+	if(view.Editbox._currentID == null) utils.Data.insert(view.Editbox.getParams(),view.Editbox.onUpdated); else utils.Data.update(view.Editbox._currentID,view.Editbox.getParams(),view.Editbox.onUpdated);
 	return false;
+};
+view.Editbox.onUpdated = function() {
+	var timer = new haxe.Timer(1000);
+	timer.run = function() {
+		timer.stop();
+		view.Editbox.setDefault();
+		view.Editbox._jCover.hide();
+		if(view.Editbox._currentID != null) {
+			view.Editbox._currentID = null;
+			view.Editbox.close();
+		}
+		view.Searchbox.reload();
+	};
 };
 view.Editbox.getParams = function() {
 	var params = new haxe.ds.StringMap();
@@ -903,7 +981,7 @@ view.Editbox.setRatio = function() {
 			var info = data[i];
 			var id = info.id;
 			var inputID = "editbox-ratio-" + id;
-			html += "\n\t\t\t\t<dd class=\"member\" data-id=\"" + id + "\">\n\t\t\t\t\t<label for=\"" + inputID + "\">" + info.name.split(" ")[0] + "</label>\n\t\t\t\t\t<input type=\"number\" min=\"0\" max=\"100\" value=\"0\" class=\"ratio-input\" id=\"" + inputID + "\">\n\t\t\t\t</dd>";
+			html += "\n\t\t\t\t<dd class=\"member\" data-id=\"" + id + "\">\n\t\t\t\t\t<label for=\"" + inputID + "\">" + info.name.split(" ")[0] + "</label>\n\t\t\t\t\t<input type=\"number\" min=\"0\" max=\"100\" value=\"0\" class=\"ratio-input\" id=\"" + inputID + "\" data-id=\"" + id + "\">\n\t\t\t\t</dd>";
 		}
 		view.Editbox._jParent.find(".ratio").append(html + "<dd class=\"total\">0</dd>");
 	});
@@ -950,6 +1028,12 @@ view.Html.get = function(map) {
 	}
 	return html + "</table>";
 };
+view.Html.getFormattedDate = function(date,separator) {
+	if(separator == null) separator = ".";
+	var string;
+	if(date == null) string = "null"; else string = "" + date;
+	return HxOverrides.substr(string,0,4) + separator + HxOverrides.substr(string,4,2);
+};
 view.Html.getMonthlyWorks = function(key,array) {
 	var monthlyCost = 0;
 	var html = "\n\t\t<tr class=\"date\">\n\t\t\t<th colspan=\"" + 7 + "\">" + view.Html.getFormattedDate(key) + "</th>\n\t\t</tr>";
@@ -979,7 +1063,10 @@ view.Html.getWork = function(info) {
 };
 view.Html.getTD = function(info,key) {
 	var content = "";
-	if(key == "members") content = view.Html.getMembers(info.ratio_list.split(",")); else {
+	if(key == "members") {
+		var ratioList = info.price_ratio_list;
+		if(ratioList != null) content = view.Html.getMembers(ratioList.split(","));
+	} else {
 		var value = Std.string(Reflect.getProperty(info,key));
 		if(value == "null") value = "";
 		switch(key) {
@@ -1012,11 +1099,6 @@ view.Html.getMembers = function(ratios) {
 	}
 	return members.join(",");
 };
-view.Html.getFormattedDate = function(date) {
-	var string;
-	if(date == null) string = "null"; else string = "" + date;
-	return HxOverrides.substr(string,0,4) + "." + HxOverrides.substr(string,4,2);
-};
 view.Searchbox = function() { };
 view.Searchbox.__name__ = true;
 view.Searchbox.init = function() {
@@ -1027,6 +1109,9 @@ view.Searchbox.init = function() {
 	view.Searchbox._jSubmit = view.Searchbox._jParent.find(".submit").find("button");
 	view.Searchbox.setYear(new Date().getFullYear());
 	view.Searchbox._jSubmit.on("click",view.Searchbox.submit).trigger("click");
+};
+view.Searchbox.reload = function() {
+	view.Searchbox._jSubmit.trigger("click");
 };
 view.Searchbox.setYear = function(year) {
 	view.Searchbox._jFrom.prop("value",view.Searchbox.getFormattedDate(year,1));

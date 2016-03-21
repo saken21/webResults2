@@ -47,11 +47,29 @@ class Data {
 		public static function insert(params:ParamMap,onLoaded:Void->Void):Void {
 			
 			params['mode'] = 'insert';
+			set(params,onLoaded);
 
-			API.getString(API_NAME,params,function(data:String):Void {
-				
-				trace(data);
-				onLoaded();
+		}
+		
+		/* =======================================================================
+		Public - Update
+		========================================================================== */
+		public static function update(id:Int,params:ParamMap,onLoaded:Void->Void):Void {
+			
+			params['id']   = Std.string(id);
+			params['mode'] = 'update';
+
+			set(params,onLoaded);
+
+		}
+		
+		/* =======================================================================
+		Public - Load One
+		========================================================================== */
+		public static function loadOne(id:Int,onLoaded:Dynamic->Void):Void {
+			
+			API.getJSON(API_NAME,['id'=>Std.string(id)],function(data:DataArray):Void {
+				onLoaded(data[0]);
 			});
 
 		}
@@ -65,6 +83,17 @@ class Data {
 		else Works.setEmptyHTML();
 		
 		traceMembersCost(data);
+		
+	}
+	
+	/* =======================================================================
+	Set
+	========================================================================== */
+	private static function set(params:ParamMap,onLoaded:Void->Void):Void {
+		
+		API.getString(API_NAME,params,function(data:String):Void {
+			onLoaded();
+		});
 		
 	}
 	
@@ -105,7 +134,10 @@ class Data {
 			
 			for (i in 0...data.length) {
 				
-				var ratios:Array<String> = data[i].ratio_list.split(',');
+				var ratioList:String = data[i].price_ratio_list;
+				if (ratioList == null) continue;
+				
+				var ratios:Array<String> = ratioList.split(',');
 				
 				for (j in 0...ratios.length) {
 					

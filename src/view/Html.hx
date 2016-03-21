@@ -25,6 +25,16 @@ class Html {
 		return html + '</table>';
 
 	}
+	
+		/* =======================================================================
+		Public - Get Formatted Date
+		========================================================================== */
+		public static function getFormattedDate(date:Int,separator:String = '.'):String {
+
+			var string:String = Std.string(date);
+			return string.substr(0,4) + separator + string.substr(4,2);
+
+		}
 		
 	/* =======================================================================
 	Get Monthly Works
@@ -89,7 +99,8 @@ class Html {
 		
 		if (key == 'members') {
 			
-			content = getMembers(info.ratio_list.split(','));
+			var ratioList:String = info.price_ratio_list;
+			if (ratioList != null) content = getMembers(ratioList.split(','));
 			
 		} else {
 			
@@ -140,16 +151,6 @@ class Html {
 		}
 		
 		return members.join(',');
-		
-	}
-		
-	/* =======================================================================
-	Get Formatted Date
-	========================================================================== */
-	private static function getFormattedDate(date:Int):String {
-		
-		var string:String = Std.string(date);
-		return string.substr(0,4) + '.' + string.substr(4,2);
 		
 	}
 
