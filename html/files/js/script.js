@@ -821,6 +821,11 @@ view.Editbox.edit = function(id) {
 	view.Editbox.open();
 	utils.Data.loadOne(id,view.Editbox.setData);
 };
+view.Editbox.close = function() {
+	if(!view.Editbox._isOpened) return;
+	view.Editbox._isOpened = false;
+	view.Editbox.move(0);
+};
 view.Editbox.setDefault = function() {
 	view.Editbox._jColumns.prop("value","");
 	view.Editbox._jColumns.filter("[type=\"radio\"]").prop("checked",true);
@@ -882,11 +887,6 @@ view.Editbox.open = function() {
 	view.Editbox._isOpened = true;
 	view.Editbox.move(view.Editbox._width);
 	view.Editbox.setDefault();
-};
-view.Editbox.close = function() {
-	if(!view.Editbox._isOpened) return;
-	view.Editbox._isOpened = false;
-	view.Editbox.move(0);
 };
 view.Editbox.move = function(x) {
 	view.Editbox._jMainArea.stop().animate({ left : x},200);
@@ -1144,7 +1144,11 @@ view.Works.setEmptyHTML = function() {
 };
 view.Works.onClick = function(event) {
 	var jTarget = new js.JQuery(event.target);
-	if(jTarget.hasClass("edit-button")) view.Editbox.edit(jTarget.parents(".work").data("id"));
+	if(jTarget.hasClass("edit-button")) {
+		view.Editbox.edit(jTarget.parents(".work").data("id"));
+		return;
+	}
+	view.Editbox.close();
 };
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; }
 var $_, $fid = 0;

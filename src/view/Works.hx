@@ -43,8 +43,13 @@ class Works {
 		var jTarget:JQuery = new JQuery(event.target);
 		
 		if (jTarget.hasClass('edit-button')) {
+			
 			Editbox.edit(jTarget.parents('.work').data('id'));
+			return;
+		
 		}
+		
+		Editbox.close();
 
 	}
 
