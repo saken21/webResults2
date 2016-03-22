@@ -585,6 +585,9 @@ jp.saken.utils.Handy.getMap = function(array) {
 	}
 	return map;
 };
+jp.saken.utils.Handy.getIsImageSource = function(string) {
+	return new EReg("data:image","").match(string);
+};
 jp.saken.utils.Loader = function() { };
 jp.saken.utils.Loader.__name__ = true;
 jp.saken.utils.Loader.loadImage = function(src,onLoaded) {
@@ -802,7 +805,7 @@ view.Editbox.init = function() {
 	view.Editbox._width = view.Editbox._jParent.width();
 	view.Editbox._isOpened = false;
 	view.Editbox._jParent.on("change",view.Editbox.onChange);
-	view.Editbox._jParent.find(".submit").find("button").on("click",view.Editbox.submit);
+	view.Editbox._jParent.on("click",view.Editbox.onClick);
 	view.Editbox.setRatio();
 	view.Editbox.setSales();
 	view.Editbox.setHasAuth();
@@ -847,6 +850,10 @@ view.Editbox.setData = function(data) {
 		jTarget1.prop("checked",false);
 		jTarget1.nextAll("input").prop("checked",true);
 	};
+	var setImage = function(jTarget2,value1) {
+		if(!jp.saken.utils.Handy.getIsImageSource(value1)) return;
+		jTarget2.html("<img src=\"" + value1 + "\">");
+	};
 	var setRatio = function(jParent,data1) {
 		if(data1 == null) return;
 		var ratios = data1.split(",");
@@ -857,27 +864,27 @@ view.Editbox.setData = function(data) {
 			var ratio = ratios[i];
 			var splits = ratio.split("=");
 			var id = splits[0];
-			var value1 = splits[1];
-			jParent.find(".ratio-input[data-id=\"" + id + "\"]").prop("value",value1);
+			var value2 = splits[1];
+			jParent.find(".ratio-input[data-id=\"" + id + "\"]").prop("value",value2);
 		}
 		jParent.find(".ratio-input").trigger("change");
 	};
 	view.Editbox._jColumns.each(function() {
-		var jTarget2 = $(this);
-		var column = jTarget2.data("column");
-		var value2 = Reflect.getProperty(data,column);
+		var jTarget3 = $(this);
+		var column = jTarget3.data("column");
+		var value3 = Reflect.getProperty(data,column);
 		switch(column) {
 		case "date":
-			setDate(jTarget2,Std.parseInt(value2));
+			setDate(jTarget3,Std.parseInt(value3));
 			break;
 		case "is_help":case "is_public":
-			setRadio(jTarget2,value2 == "1");
+			setRadio(jTarget3,value3 == "1");
 			break;
 		case "image":
-			view.Editbox._jPreview.html("<img src=\"" + value2 + "\">");
+			setImage(view.Editbox._jPreview,value3);
 			break;
 		default:
-			jTarget2.prop("value",value2);
+			jTarget3.prop("value",value3);
 		}
 	});
 	setRatio(view.Editbox._jParent.find(".ratio"),data.ratio_list);
@@ -907,7 +914,14 @@ view.Editbox.loadImage = function(src) {
 		view.Editbox._jPreview.empty().append(jImage);
 	});
 };
-view.Editbox.submit = function(event) {
+view.Editbox.onClick = function(event) {
+	var jTarget = new js.JQuery(event.target);
+	if(jTarget["is"]("[type=\"submit\"]")) {
+		view.Editbox.submit();
+		return false;
+	} else if(jTarget.hasClass("delete-image")) view.Editbox.deleteImage();
+};
+view.Editbox.submit = function() {
 	var jRequired = view.Editbox._jParent.find("input[required]");
 	var _g1 = 0;
 	var _g = jRequired.length;
@@ -917,7 +931,10 @@ view.Editbox.submit = function(event) {
 	}
 	view.Editbox._jCover.show();
 	if(view.Editbox._currentID == null) utils.Data.insert(view.Editbox.getParams(),view.Editbox.onUpdated); else utils.Data.update(view.Editbox._currentID,view.Editbox.getParams(),view.Editbox.onUpdated);
-	return false;
+};
+view.Editbox.deleteImage = function() {
+	view.Editbox._jPreview.empty();
+	view.Editbox._jColumns.filter("[data-column=\"image\"]").prop("value","");
 };
 view.Editbox.onUpdated = function() {
 	var timer = new haxe.Timer(1000);
@@ -939,7 +956,6 @@ view.Editbox.getParams = function() {
 		var key = jTarget.data("column");
 		var value = jTarget.prop("value");
 		if(jTarget["is"]("[type=\"radio\"]")) if(jTarget["is"](":checked")) value = "0"; else value = "1";
-		if(value.length == 0) return;
 		if(key == "date") value = StringTools.replace(value,"-","");
 		params.set(key,value);
 		value;
@@ -947,11 +963,9 @@ view.Editbox.getParams = function() {
 	var v = view.Editbox.getRatioList();
 	params.set("ratio_list",v);
 	v;
-	var imageSRC = view.Editbox._jPreview.find("img").prop("src");
-	if(imageSRC != null) {
-		params.set("image",imageSRC);
-		imageSRC;
-	}
+	var v1 = view.Editbox.getImageSRC();
+	params.set("image",v1);
+	v1;
 	return params;
 };
 view.Editbox.getRatioList = function() {
@@ -964,6 +978,11 @@ view.Editbox.getRatioList = function() {
 		array.push(id + "=" + value);
 	});
 	return array.join(",");
+};
+view.Editbox.getImageSRC = function() {
+	var src = view.Editbox._jPreview.find("img").prop("src");
+	if(src == null || !jp.saken.utils.Handy.getIsImageSource(src)) src = "";
+	return src;
 };
 view.Editbox.setRatio = function() {
 	jp.saken.utils.API.getJSON("members",(function($this) {

@@ -36,7 +36,7 @@ class Editbox {
 		_isOpened  = false;
 		
 		_jParent.on('change',onChange);
-		_jParent.find('.submit').find('button').on('click',submit);
+		_jParent.on('click',onClick);
 		
 		setRatio();
 		setSales();
@@ -132,6 +132,13 @@ class Editbox {
 			
 		}
 		
+		function setImage(jTarget:JQuery,value:String):Void {
+			
+			if (!Handy.getIsImageSource(value)) return;
+			jTarget.html('<img src="' + value + '">');
+			
+		}
+		
 		function setRatio(jParent:JQuery,data:String):Void {
 			
 			if (data == null) return;
@@ -164,7 +171,7 @@ class Editbox {
 				
 				case 'date'                : setDate(jTarget,Std.parseInt(value));
 				case 'is_help','is_public' : setRadio(jTarget,value == '1');
-				case 'image'               : _jPreview.html('<img src="' + value + '">');
+				case 'image'               : setImage(_jPreview,value);
 				default                    : jTarget.prop('value',value);
 				
 			}
@@ -236,9 +243,29 @@ class Editbox {
 	}
 	
 	/* =======================================================================
+	On Click
+	========================================================================== */
+	private static function onClick(event:JqEvent):Void {
+		
+		var jTarget:JQuery = new JQuery(event.target);
+		
+		if (jTarget.is('[type="submit"]')) {
+			
+			submit();
+			return untyped false;
+			
+		} else if (jTarget.hasClass('delete-image')) {
+			
+			deleteImage();
+			
+		}
+
+	}
+	
+	/* =======================================================================
 	Submit
 	========================================================================== */
-	private static function submit(event:JqEvent):Void {
+	private static function submit():Void {
 		
 		var jRequired:JQuery = _jParent.find('input[required]');
 		
@@ -254,8 +281,16 @@ class Editbox {
 		
 		if (_currentID == null) Data.insert(getParams(),onUpdated);
 		else Data.update(_currentID,getParams(),onUpdated);
+
+	}
+	
+	/* =======================================================================
+	Delete Image
+	========================================================================== */
+	private static function deleteImage():Void {
 		
-		return untyped false;
+		_jPreview.empty();
+		_jColumns.filter('[data-column="image"]').prop('value','');
 
 	}
 	
@@ -303,17 +338,16 @@ class Editbox {
 				value = jTarget.is(':checked') ? '0' : '1';
 			}
 			
-			if (value.length == 0) return;
-			if (key == 'date') value = StringTools.replace(value,'-','');
+			if (key == 'date') {
+				value = StringTools.replace(value,'-','');
+			}
 			
 			params[key] = value;
 			
 		});
 		
 		params['ratio_list'] = getRatioList();
-		
-		var imageSRC:String = _jPreview.find('img').prop('src');
-		if (imageSRC != null) params['image'] = imageSRC;
+		params['image'] = getImageSRC();
 		
 		return params;
 		
@@ -339,6 +373,21 @@ class Editbox {
 		});
 		
 		return array.join(',');
+		
+	}
+	
+	/* =======================================================================
+	Get Image SRC
+	========================================================================== */
+	private static function getImageSRC():String {
+		
+		var src:String = _jPreview.find('img').prop('src');
+		
+		if (src == null || !Handy.getIsImageSource(src)) {
+			src = '';
+		}
+		
+		return src;
 		
 	}
 	

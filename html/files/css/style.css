@@ -42,7 +42,6 @@
 		}
 		
 			#works table td.name a {
-				display:block;
 				padding:10px;
 			}
 			
@@ -242,7 +241,25 @@
 			
 		#editbox dl.image dd {
 			float:left;
+			position:relative;
 		}
+		
+			#editbox dl.image dd .delete-image {
+				position:absolute;
+				right:-6px;
+				top:6px;
+				width:20px;
+				height:20px;
+				padding:0;
+				border-radius:0;
+				background:#aaa;
+				font-size:11px;
+				line-height:20px;
+			}
+			
+			#editbox dl.image dd .delete-image:hover {
+				background-color:#bbb;
+			}
 			
 		#editbox dl.image dd.preview {
 			width:260px;

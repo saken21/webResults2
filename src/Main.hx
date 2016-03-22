@@ -1,11 +1,11 @@
 /**
 * ================================================================================
 *
-* WebResults2 ver 2.00.01
+* WebResults2 ver 2.00.02
 *
 * Author : KENTA SAKATA
 * Since  : 2016/03/05
-* Update : 2016/03/21
+* Update : 2016/03/22
 *
 * Licensed under the MIT License
 * Copyright (c) Kenta Sakata
