@@ -155,7 +155,8 @@
 		width:542px;
 	}
 	
-	#editbox dl.url {
+	#editbox dl.url,
+	#editbox dl.tag {
 		width:530px;
 	}
 	
