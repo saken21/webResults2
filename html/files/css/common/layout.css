@@ -114,7 +114,7 @@ body {
 			}
 			
 		#searchbox .submit {
-			margin:0 0 0 5px;
+			margin-right:0;
 		}
 		
 		#searchbox .from:after {
