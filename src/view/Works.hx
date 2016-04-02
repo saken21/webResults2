@@ -47,6 +47,10 @@ class Works {
 			Editbox.edit(jTarget.parents('.work').data('id'));
 			return;
 		
+		} else if (jTarget.hasClass('client')) {
+			
+			Searchbox.searchKeyword(jTarget.text());
+			
 		}
 		
 		Editbox.close();

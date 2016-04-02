@@ -37,6 +37,14 @@
 			background-color:#f8f8f8;
 		}
 		
+		#works table td.client {
+			cursor:pointer;
+		}
+		
+		#works table td.client:hover {
+			text-decoration:underline;
+		}
+		
 		#works table td.name {
 			padding:0;
 		}

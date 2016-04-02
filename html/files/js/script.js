@@ -183,8 +183,9 @@ Main.__name__ = true;
 Main.main = function() {
 	new js.JQuery("document").ready(function(event) {
 		view.Searchbox.init();
-		view.Works.init();
+		view.Header.init();
 		view.Editbox.init();
+		view.Works.init();
 		ui.Keyboard.init();
 	});
 };
@@ -587,6 +588,21 @@ jp.saken.utils.Handy.getMap = function(array) {
 };
 jp.saken.utils.Handy.getIsImageSource = function(string) {
 	return new EReg("data:image","").match(string);
+};
+jp.saken.utils.Handy.timer = function(func,time) {
+	if(time == null) time = 1000;
+	var timer = new haxe.Timer(time);
+	timer.run = function() {
+		timer.stop();
+		func();
+	};
+};
+jp.saken.utils.Handy.prototype = {
+	getRoundNumber: function(val,digits) {
+		var m = Math.pow(10,digits);
+		var d = Math.pow(.1,digits);
+		return Math.floor(val * m) * d;
+	}
 };
 jp.saken.utils.Loader = function() { };
 jp.saken.utils.Loader.__name__ = true;
@@ -1035,6 +1051,15 @@ view.Editbox.setHasAuth = function() {
 		view.Editbox._hasAuth = data == "true";
 	});
 };
+view.Header = function() { };
+view.Header.__name__ = true;
+view.Header.init = function() {
+	view.Header._jParent = new js.JQuery("#header").on("click",view.Header.onClick);
+};
+view.Header.onClick = function(event) {
+	var jTarget = new js.JQuery(event.target);
+	if(jTarget.hasClass("title")) view.Searchbox.reset();
+};
 view.Html = function() { };
 view.Html.__name__ = true;
 view.Html.get = function(map) {
@@ -1126,11 +1151,19 @@ view.Searchbox.init = function() {
 	view.Searchbox._jFrom = view.Searchbox._jParent.find(".from").find("input");
 	view.Searchbox._jTo = view.Searchbox._jParent.find(".to").find("input");
 	view.Searchbox._jSubmit = view.Searchbox._jParent.find(".submit").find("button");
-	view.Searchbox.setYear(new Date().getFullYear());
-	view.Searchbox._jSubmit.on("click",view.Searchbox.submit).trigger("click");
+	view.Searchbox._jSubmit.on("click",view.Searchbox.submit);
+	view.Searchbox.reset();
 };
 view.Searchbox.reload = function() {
 	view.Searchbox._jSubmit.trigger("click");
+};
+view.Searchbox.reset = function() {
+	view.Searchbox.setYear(new Date().getFullYear());
+	view.Searchbox.searchKeyword("");
+};
+view.Searchbox.searchKeyword = function(keyword) {
+	view.Searchbox._jKeyword.prop("value",keyword);
+	view.Searchbox.reload();
 };
 view.Searchbox.setYear = function(year) {
 	view.Searchbox._jFrom.prop("value",view.Searchbox.getFormattedDate(year,1));
@@ -1166,7 +1199,7 @@ view.Works.onClick = function(event) {
 	if(jTarget.hasClass("edit-button")) {
 		view.Editbox.edit(jTarget.parents(".work").data("id"));
 		return;
-	}
+	} else if(jTarget.hasClass("client")) view.Searchbox.searchKeyword(jTarget.text());
 	view.Editbox.close();
 };
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; }

@@ -1,11 +1,11 @@
 /**
 * ================================================================================
 *
-* WebResults2 ver 2.00.02
+* WebResults2 ver 2.00.03
 *
 * Author : KENTA SAKATA
 * Since  : 2016/03/05
-* Update : 2016/03/22
+* Update : 2016/04/02
 *
 * Licensed under the MIT License
 * Copyright (c) Kenta Sakata
@@ -17,6 +17,7 @@
 package;
 
 import js.JQuery;
+import view.Header;
 import view.Searchbox;
 import view.Works;
 import view.Editbox;
@@ -30,8 +31,10 @@ class Main {
 		new JQuery('document').ready(function(event:JqEvent):Void {
 			
 			Searchbox.init();
-			Works.init();
+			Header.init();
+			
 			Editbox.init();
+			Works.init();
 			
 			Keyboard.init();
 			

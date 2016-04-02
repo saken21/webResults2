@@ -23,9 +23,8 @@ class Searchbox {
 		_jTo      = _jParent.find('.to').find('input');
 		_jSubmit  = _jParent.find('.submit').find('button');
 		
-		setYear(Date.now().getFullYear());
-		
-		_jSubmit.on('click',submit).trigger('click');
+		_jSubmit.on('click',submit);
+		reset();
 		
 	}
 	
@@ -35,6 +34,26 @@ class Searchbox {
 		public static function reload():Void {
 
 			_jSubmit.trigger('click');
+
+		}
+		
+		/* =======================================================================
+		Public - Reset
+		========================================================================== */
+		public static function reset():Void {
+			
+			setYear(Date.now().getFullYear());
+			searchKeyword('');
+
+		}
+		
+		/* =======================================================================
+		Public - Search Keyword
+		========================================================================== */
+		public static function searchKeyword(keyword:String):Void {
+			
+			_jKeyword.prop('value',keyword);
+			reload();
 
 		}
 	
