@@ -1,7 +1,9 @@
 package view;
 
 import haxe.Timer;
-import js.JQuery;
+import js.html.Element;
+import js.jquery.JQuery;
+import js.jquery.Event;
 import jp.saken.utils.Handy;
 import jp.saken.utils.API;
 import jp.saken.utils.File;
@@ -16,9 +18,8 @@ class Editbox {
 	private static var _jColumns :JQuery;
 	private static var _jPreview :JQuery;
 	
-	private static var _width    :Int;
+	private static var _width    :Float;
 	private static var _isOpened :Bool;
-	private static var _hasAuth  :Bool;
 	private static var _currentID:Int;
 	
 	/* =======================================================================
@@ -40,7 +41,6 @@ class Editbox {
 		
 		setRatio();
 		setSales();
-		setHasAuth();
 		
 	}
 	
@@ -48,8 +48,6 @@ class Editbox {
 		Public - Toggle
 		========================================================================== */
 		public static function toggle():Void {
-			
-			if (!_hasAuth) return;
 			
 			_currentID = null;
 			
@@ -62,13 +60,6 @@ class Editbox {
 		Public - Edit
 		========================================================================== */
 		public static function edit(id:Int):Void {
-			
-			if (!_hasAuth) {
-				
-				Handy.alert('無効な操作です。');
-				return;
-				
-			}
 			
 			_currentID = id;
 			open();
@@ -97,9 +88,9 @@ class Editbox {
 		_jColumns.prop('value','');
 		_jColumns.filter('[type="radio"]').prop('checked',true);
 		
-		_jColumns.filter('select').each(function():Void {
+		_jColumns.filter('select').each(function(index:Int,element:Element):Void {
 			
-			var jTarget:JQuery = JQuery.cur;
+			var jTarget:JQuery = new JQuery(element);
 			jTarget.prop('value',jTarget.find('option').first().prop('value'));
 			
 		});
@@ -161,9 +152,9 @@ class Editbox {
 			
 		}
 		
-		_jColumns.each(function():Void {
+		_jColumns.each(function(index:Int,element:Element):Void {
 			
-			var jTarget:JQuery = JQuery.cur;
+			var jTarget:JQuery = new JQuery(element);
 			var column :String = jTarget.data('column');
 			var value  :String = Reflect.getProperty(data,column);
 			
@@ -199,7 +190,7 @@ class Editbox {
 	/* =======================================================================
 	Move
 	========================================================================== */
-	private static function move(x:Int):Void {
+	private static function move(x:Float):Void {
 		
 		_jMainArea.stop().animate({ left:x }, 200);
 
@@ -208,7 +199,7 @@ class Editbox {
 	/* =======================================================================
 	On Change
 	========================================================================== */
-	private static function onChange(event:JqEvent):Void {
+	private static function onChange(event:Event):Void {
 		
 		var jTarget:JQuery = new JQuery(event.target);
 		
@@ -217,8 +208,8 @@ class Editbox {
 			var jParent:JQuery = jTarget.parents('.ratio');
 			var total  :Int    = 0;
 			
-			jParent.find('input[type="number"]').each(function():Void {
-				total += Std.parseInt(JQuery.cur.prop('value'));
+			jParent.find('input[type="number"]').each(function(index:Int,element:Element):Void {
+				total += Std.parseInt(new JQuery(element).prop('value'));
 			});
 			
 			jParent.find('.total').text(Std.string(total));
@@ -245,7 +236,7 @@ class Editbox {
 	/* =======================================================================
 	On Click
 	========================================================================== */
-	private static function onClick(event:JqEvent):Void {
+	private static function onClick(event:Event):Void {
 		
 		var jTarget:JQuery = new JQuery(event.target);
 		
@@ -328,9 +319,9 @@ class Editbox {
 		
 		var params:ParamMap = new Map();
 		
-		_jColumns.each(function():Void {
+		_jColumns.each(function(index:Int,element:Element):Void {
 			
-			var jTarget:JQuery = JQuery.cur;
+			var jTarget:JQuery = new JQuery(element);
 			var key    :String = jTarget.data('column');
 			var value  :String = jTarget.prop('value');
 			
@@ -360,9 +351,9 @@ class Editbox {
 		
 		var array:Array<String> = [];
 		
-		_jParent.find('.ratio').find('.member').each(function():Void {
+		_jParent.find('.ratio').find('.member').each(function(index:Int,element:Element):Void {
 			
-			var jTarget:JQuery = JQuery.cur;
+			var jTarget:JQuery = new JQuery(element);
 			var id     :String = jTarget.data('id');
 			var value  :String = jTarget.find('input').prop('value');
 			
@@ -438,17 +429,6 @@ class Editbox {
 			
 			_jParent.find('.sales').find('select').html(html);
 			
-		});
-
-	}
-	
-	/* =======================================================================
-	Set Has Auth
-	========================================================================== */
-	private static function setHasAuth():Void {
-		
-		API.getString('members',['auth'=>'web'],function(data:String):Void {
-			_hasAuth = (data == 'true');
 		});
 
 	}

@@ -1,6 +1,7 @@
 package view;
 
-import js.JQuery;
+import js.jquery.JQuery;
+import js.jquery.Event;
 import utils.Data;
 
 class Works {
@@ -38,7 +39,7 @@ class Works {
 	/* =======================================================================
 	On Click
 	========================================================================== */
-	private static function onClick(event:JqEvent):Void {
+	private static function onClick(event:Event):Void {
 		
 		var jTarget:JQuery = new JQuery(event.target);
 		

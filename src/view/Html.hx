@@ -1,6 +1,6 @@
 package view;
 
-import js.JQuery;
+import js.jquery.JQuery;
 import jp.saken.utils.Handy;
 import utils.Data;
 

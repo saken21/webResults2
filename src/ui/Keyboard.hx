@@ -1,6 +1,7 @@
 package ui;
 
-import js.JQuery;
+import js.jquery.JQuery;
+import js.jquery.Event;
 import jp.saken.utils.Dom;
 import view.Editbox;
  
@@ -18,7 +19,7 @@ class Keyboard {
 	/* =======================================================================
 	On Keydown
 	========================================================================== */
-	private static function onKeydown(event:JqEvent):Void {
+	private static function onKeydown(event:Event):Void {
 		
 		var keyCode:Int = event.keyCode;
 		

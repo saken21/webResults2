@@ -1,6 +1,7 @@
 package view;
 
-import js.JQuery;
+import js.jquery.JQuery;
+import js.jquery.Event;
 import jp.saken.utils.Handy;
 import utils.Data;
 
@@ -70,15 +71,15 @@ class Searchbox {
 	/* =======================================================================
 	Submit
 	========================================================================== */
-	private static function submit(event:JqEvent):Void {
+	private static function submit(event:Event):Void {
+
+		event.preventDefault();
 		
 		var keyword:String = _jKeyword.prop('value');
 		var from   :String = getDateNumber(_jFrom.prop('value'));
 		var to     :String = getDateNumber(_jTo.prop('value'));
 		
 		Data.load(keyword,from,to);
-		
-		return untyped false;
 		
 	}
 	

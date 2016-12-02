@@ -9,7 +9,6 @@ typedef DataArray = Array<Dynamic>;
 class Data {
 	
 	private static inline var API_NAME:String = 'webResults2';
-	private static inline var MY_IP   :String = '192.168.0.39';
 	
 	/* =======================================================================
 	Public - Load
@@ -126,39 +125,33 @@ class Data {
 	========================================================================== */
 	private static function traceMembersCost(data:DataArray):Void {
 		
-		API.getIP(function(ip:String):Void {
+		var map:Map<String,Int> = new Map();
 			
-			if (ip != MY_IP) return;
+		for (i in 0...data.length) {
 			
-			var map:Map<String,Int> = new Map();
+			var ratioList:String = data[i].price_ratio_list;
+			if (ratioList == null) continue;
 			
-			for (i in 0...data.length) {
+			var ratios:Array<String> = ratioList.split(',');
+			
+			for (j in 0...ratios.length) {
 				
-				var ratioList:String = data[i].price_ratio_list;
-				if (ratioList == null) continue;
+				var splits:Array<String> = ratios[j].split('=');
 				
-				var ratios:Array<String> = ratioList.split(',');
+				var member:String = splits[0];
+				var cost  :Int    = Std.parseInt(splits[1]);
+				var total :Int = map[member];
 				
-				for (j in 0...ratios.length) {
-					
-					var splits:Array<String> = ratios[j].split('=');
-					
-					var member:String = splits[0];
-					var cost  :Int    = Std.parseInt(splits[1]);
-					var total :Int = map[member];
-					
-					if (total == null) total = 0;
-					total += cost;
-					
-					map[member] = total;
-					
-				}
+				if (total == null) total = 0;
+				total += cost;
+				
+				map[member] = total;
 				
 			}
 			
-			trace(map);
-			
-		});
+		}
+		
+		trace(map);
 		
 	}
 
