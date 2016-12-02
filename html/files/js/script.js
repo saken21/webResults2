@@ -1167,8 +1167,8 @@ view_Editbox.loadImage = function(src) {
 view_Editbox.onClick = function(event) {
 	var jTarget = $(event.target);
 	if(jTarget["is"]("[type=\"submit\"]")) {
+		event.preventDefault();
 		view_Editbox.submit();
-		return;
 	} else if(jTarget.hasClass("delete-image")) {
 		view_Editbox.deleteImage();
 	}

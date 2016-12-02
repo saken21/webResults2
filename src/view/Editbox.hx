@@ -242,8 +242,8 @@ class Editbox {
 		
 		if (jTarget.is('[type="submit"]')) {
 			
+			event.preventDefault();
 			submit();
-			return untyped false;
 			
 		} else if (jTarget.hasClass('delete-image')) {
 			
